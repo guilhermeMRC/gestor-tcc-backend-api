@@ -42,5 +42,15 @@ module.exports = app => {
         
     }
 
-    return { User, saveUser }
+    //Listar todos os usuários
+    const listAllUsers = async (req, res) => {
+        try {
+            const users = await User.find()
+            res.json(users)
+        }catch(error) {
+            res.status(500).json({ message: error.message })
+        }
+    }
+
+    return { User, saveUser, listAllUsers }
 }
