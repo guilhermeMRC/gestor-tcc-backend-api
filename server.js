@@ -20,7 +20,8 @@ app.mongoose = mongoose
 consign()
     .then('./config/middlewares.js')
     .then('./api/validation.js')
-    .then('./api')
+    .then('./api/user.js')
+    .then('./api/auth.js')
     .then('./config/routes.js')
     .into(app)
     
