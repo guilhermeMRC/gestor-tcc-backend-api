@@ -16,16 +16,16 @@ app.disable('x-powered-by')
 //chamando o mongodb
 app.mongoose = mongoose
 
-//auto load nas pastas 
+//autoload nas pastas 
 consign()
-    .then('./config/middlewares.js')
+    .include('./config/middlewares.js')
     .then('./api/validation.js')
     .then('./api/user.js')
     .then('./api/auth.js')
+    .then('./config/passport.js')
     .then('./config/routes.js')
     .into(app)
     
-
 app.listen(process.env.APP_PORT || 3000, () => {
     console.log('Server running!')
 })
