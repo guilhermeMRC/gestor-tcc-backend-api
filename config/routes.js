@@ -10,8 +10,12 @@ module.exports = app => {
         .post(app.api.user.saveUser)
         .get(app.api.user.listAllUsers)
 
-    app.route('/users/:matricula')
+    app.route('/users/mat/:matricula')
         .all(app.config.passport.authenticate())
-        .get(app.api.user.getUserbyMatricula)
+        .get(app.api.user.getUserByMatricula)
     
+    app.route('/users/:id')
+        .all(app.config.passport.authenticate())
+        .get(app.api.user.getUserById)
+        .patch(app.api.user.updateUser)
 }

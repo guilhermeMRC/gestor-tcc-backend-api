@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt')
+const { json } = require('express')
 const { use } = require('passport')
 
 module.exports = app => {
@@ -49,7 +50,7 @@ module.exports = app => {
             user.password = encryptPassword(user.password)
         
             const newUser = await user.save()
-            res.status(201).send("Usuário cadastrado com sucesso!")
+            res.status(201).json(newUser)
             
         }catch (msg) {
             return res.status(400).send(msg)
@@ -67,7 +68,7 @@ module.exports = app => {
         }
     }
 
-    const getUserbyMatricula = async (req, res) => {
+    const getUserByMatricula = async (req, res) => {
        
         try {
             
@@ -82,13 +83,54 @@ module.exports = app => {
         }catch(error) {
             return res.status(500).json({message: error.message})
         }
-
         
     }
 
-    // const update = async (req, res) => {
-        
-    // }
+    const getUserById = async (req, res) => {
+       
+        try {
+            
+            const user = await User.findById(req.params.id)
+            
+            if(user == null) {
+                return res.status(404).send("Usuário não encontrado")
+            }else {
+                // return res.status(200).json(user)
+                return user
+            }
 
-    return { User, saveUser, listAllUsers, getUserbyMatricula }
+        }catch(error) {
+            return res.status(500).json({message: error.message})
+        }
+        
+    }
+
+    const updateUser = async (req, res) => {
+        try { 
+            
+            const user = await User.findById(req.params.id)
+            
+            if(user == null) {
+                return res.status(404).send("Usuário não encontrado")
+            }
+
+            existOrError(req.body.name, 'Nome não informado')
+            user.name = req.body.name
+            existOrError(req.body.matricula, 'Matricula não informada')
+            user.matricula = req.body.matricula
+
+            try {
+                    const userUpdate = await user.save() 
+                    res.json(userUpdate)   
+            } catch (msg) {
+                    res.status(400).send(msg)
+            }
+
+        }catch(msg) {
+            return res.status(500).send(msg)
+        }
+ 
+    }
+
+    return { User, saveUser, listAllUsers, getUserByMatricula, getUserById, updateUser }
 }
