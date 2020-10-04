@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt')
 
 module.exports = app => {
     //model para fazer consultas
-    const User = app.api.user.User
+    const User = app.model.UserSchema.User
     
     const secret = process.env.AUTH_SECRET
 
@@ -11,14 +11,14 @@ module.exports = app => {
         
         //verifica se usuário digitou matricula e senha
         //caso não, envia uma mensagem de erro
-        if(!req.body.matricula || !req.body.password) {
+        if(!req.body.registration || !req.body.password) {
             return res.status(400).send('Informe matricula e senha!')
         }
         
         //usuário digitou matricula e senha. 
         //Vai até o banco e procura esse usuário.
         //pelo método findOne que retorna um objeto 
-        const user = await User.findOne({ matricula: req.body.matricula }).exec()
+        const user = await User.findOne({ registration: req.body.registration }).exec()
         
         //caso não ache o usuário ainda não foi cadastrado
         if(!user){
@@ -43,7 +43,7 @@ module.exports = app => {
         const payload = {
             id: user.id,
             name: user.name,
-            matricula: user.matricula,
+            registration: user.registration,
             iat: momentNow,
             exp: momentNow + (60 * 60)
         }

@@ -19,9 +19,10 @@ app.mongoose = mongoose
 //autoload nas pastas 
 consign()
     .include('./config/middlewares.js')
-    .then('./api/validation.js')
-    .then('./api/user.js')
-    .then('./api/auth.js')
+    .then('./controler/validation.js')
+    .then('./model')
+    .then('./controler/user.js')
+    .then('./controler/auth.js')
     .then('./config/passport.js')
     .then('./config/routes.js')
     .into(app)

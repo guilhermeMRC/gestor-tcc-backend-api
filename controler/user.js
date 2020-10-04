@@ -4,22 +4,17 @@ const { use } = require('passport')
 
 module.exports = app => {
     //funções de validação
-    const { existOrError, notExistsOrError, equalsOrError } = app.api.validation
+    const { existOrError, notExistsOrError, equalsOrError } = app.controler.validation
 
-    //implementando o model
-    const User = app.mongoose.model('User', {
-        name: String,
-        matricula: String,
-        password: String
-    })
-
+    //Importando o model
+    const User = app.model.UserSchema.User
+    
     //função que encripta a senha
     const encryptPassword = password => {
         const salt = bcrypt.genSaltSync(10)
         return bcrypt.hashSync(password, salt)
     }
 
-    //função que Salva no banco 
     const saveUser = async (req, res) => {
         
         //confirmação de senha que não será salvo no banco
@@ -27,24 +22,20 @@ module.exports = app => {
         
         try {
             existOrError(req.body.name, 'Nome não informado')
-            existOrError(req.body.matricula, 'Matricula não informada')
+            existOrError(req.body.registration, 'Matricula não informada')
             existOrError(req.body.password, 'Senha não informada')
             existOrError(confirmPassword, 'Confirmação de Senha inválida')
             equalsOrError(req.body.password, confirmPassword, 'Senhas não conferem')
 
-            const userFromDB = await User.findOne({matricula: req.body.matricula}).exec()
-            
-            // res.json(userFromDB)
+            const userFromDB = await User.findOne({registration: req.body.registration}).exec()
             
             if(userFromDB) {
                 return res.status(400).send("Já possui um usuário cadastrado com essa matricula")
             }
             
             //pegando dados de um novo usuário
-            const user = new User ({
-                name: req.body.name,
-                matricula: req.body.matricula,
-                password: req.body.password,
+            const user = new User({
+                ...req.body
             })
 
             user.password = encryptPassword(user.password)
@@ -68,11 +59,12 @@ module.exports = app => {
         }
     }
 
-    const getUserByMatricula = async (req, res) => {
+    //filtrar usuário pela matrícula
+    const getUserByRegistration = async (req, res) => {
        
         try {
             
-            const user = await User.findOne({ matricula: req.params.matricula }).exec() 
+            const user = await User.findOne({ registration: req.params.registration }).exec() 
             
             if(user == null) {
                 return res.status(404).send("Usuário não encontrado")
@@ -86,6 +78,7 @@ module.exports = app => {
         
     }
 
+    //filtrar usuario pelo id
     const getUserById = async (req, res) => {
        
         try {
@@ -95,8 +88,7 @@ module.exports = app => {
             if(user == null) {
                 return res.status(404).send("Usuário não encontrado")
             }else {
-                // return res.status(200).json(user)
-                return user
+                return res.status(200).json(user)
             }
 
         }catch(error) {
@@ -105,6 +97,7 @@ module.exports = app => {
         
     }
 
+    //atualizar usuário no banco
     const updateUser = async (req, res) => {
         try { 
             
@@ -116,8 +109,8 @@ module.exports = app => {
 
             existOrError(req.body.name, 'Nome não informado')
             user.name = req.body.name
-            existOrError(req.body.matricula, 'Matricula não informada')
-            user.matricula = req.body.matricula
+            existOrError(req.body.registration, 'Matricula não informada')
+            user.registration = req.body.registration
 
             try {
                     const userUpdate = await user.save() 
@@ -132,5 +125,5 @@ module.exports = app => {
  
     }
 
-    return { User, saveUser, listAllUsers, getUserByMatricula, getUserById, updateUser }
+    return { saveUser, listAllUsers, getUserByRegistration, getUserById, updateUser }
 }

@@ -2,6 +2,6 @@ APP_PORT= //numero da porta usada
 APP_DEBUG= //true ou false
 
 //string de conexão *depois alterar o endereço
-DATABASE_STRING=mongodb: //string de conexão
+DATABASE_STRING=mongodb: //string de conexão/nome do banco
 
 AUTH_SECRET= //chave secreta de autenticação
