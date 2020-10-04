@@ -1,5 +1,5 @@
 const { get } = require("mongoose")
-
+const isCoordenador = require('./isCoordenador')
 module.exports = app => {
     
     app.post('/login', app.controler.auth.signin)
@@ -7,8 +7,8 @@ module.exports = app => {
         
     app.route('/users')
         .all(app.config.passport.authenticate())
-        .post(app.controler.user.saveUser)
-        .get(app.controler.user.listAllUsers)
+        .post(isCoordenador(app.controler.user.saveUser))
+        .get(isCoordenador(app.controler.user.listAllUsers))
 
     app.route('/users/mat/:matricula')
         .all(app.config.passport.authenticate())
@@ -17,5 +17,5 @@ module.exports = app => {
     app.route('/users/:id')
         .all(app.config.passport.authenticate())
         .get(app.controler.user.getUserById)
-        .patch(app.controler.user.updateUser)
+        .patch(isCoordenador(app.controler.user.updateUser))
 }
