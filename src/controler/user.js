@@ -2,21 +2,28 @@ const bcrypt = require('bcrypt')
 const { json } = require('express')
 const { use } = require('passport')
 
+
 module.exports = app => {
     //funções de validação
-    const { existOrError, notExistsOrError, equalsOrError } = app.controler.validation
+    const { existOrError, notExistsOrError, equalsOrError } = app.src.controler.validation
 
     //Importando o model
-    const User = app.model.UserSchema.User
+    const User = app.src.model.UserSchema.User
     
+    //inportando o transporte para envio de email
+    const transporter = app.src.controler.nodemailer.transporter
+
     //função que encripta a senha
     const encryptPassword = password => {
         const salt = bcrypt.genSaltSync(10)
         return bcrypt.hashSync(password, salt)
     }
 
+    // const encryptIdUser = idUser => {
+
+    // }
+
     const saveUser = async (req, res) => {
-        
         //confirmação de senha que não será salvo no banco
         const confirmPassword = req.body.confirmPassword
         
@@ -30,7 +37,7 @@ module.exports = app => {
             const userFromDB = await User.findOne({registration: req.body.registration}).exec()
             
             if(userFromDB) {
-                return res.status(400).send("Já possui um usuário cadastrado com essa matricula")
+                return res.status(404).send("Já possui um usuário cadastrado com essa matricula")
             }
             
             //pegando dados de um novo usuário
@@ -98,6 +105,7 @@ module.exports = app => {
     }
 
     //atualizar usuário no banco
+    //mexer nele depois
     const updateUser = async (req, res) => {
         try { 
             
@@ -122,8 +130,41 @@ module.exports = app => {
         }catch(msg) {
             return res.status(500).send(msg)
         }
- 
     }
 
-    return { saveUser, listAllUsers, getUserByRegistration, getUserById, updateUser }
+    //usuário esqueceu a senha
+    const forgotPassword = async (req, res) => { 
+        try {
+            existOrError(req.body.email,"e-mail, não informado")
+            const user = await User.findOne({email: req.body.email}).exec()
+            existOrError(user,"E-mail não cadastrado")
+            
+            const defaultAdminEmail = "Guilherme Muniz <gestortcciff@gmail.com"
+            const mailSent = await transporter.sendMail({
+                from: defaultAdminEmail,
+                to: user.email,
+                subject: "Recuperação de Senha Gestor TCC IFF",
+                text: "Teste"
+            })
+
+            res.status(200).json(mailSent)
+            
+        
+            // console.log(mailSent)
+            
+            // res.status(200).json(user)
+            
+        }catch(msg) {
+            return res.status(400).send(msg)
+        }
+    }
+
+    return {
+        saveUser, 
+        listAllUsers, 
+        getUserByRegistration, 
+        getUserById, 
+        updateUser, 
+        forgotPassword 
+    }
 }

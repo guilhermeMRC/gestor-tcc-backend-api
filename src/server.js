@@ -18,13 +18,14 @@ app.mongoose = mongoose
 
 //autoload nas pastas 
 consign()
-    .include('./config/middlewares.js')
-    .then('./controler/validation.js')
-    .then('./model')
-    .then('./controler/user.js')
-    .then('./controler/auth.js')
-    .then('./config/passport.js')
-    .then('./config/routes.js')
+    .include('./src/config/middlewares.js')
+    .then('./src/controler/nodemailer.js')
+    .then('./src/controler/validation.js')
+    .then('./src/model')
+    .then('./src/controler/user.js')
+    .then('./src/controler/auth.js')
+    .then('./src/config/passport.js')
+    .then('./src/config/routes.js')
     .into(app)
     
 app.listen(process.env.APP_PORT || 3000, () => {

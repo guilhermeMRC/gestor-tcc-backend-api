@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt')
 
 module.exports = app => {
     //model para fazer consultas
-    const User = app.model.UserSchema.User
+    const User = app.src.model.UserSchema.User
     
     const secret = process.env.AUTH_SECRET
 
@@ -29,7 +29,7 @@ module.exports = app => {
         //Se a senha não conferir manda uma mensagem 
         const isMatch = bcrypt.compareSync(req.body.password, user.password)
         if(!isMatch){
-            return res.status(401).send('Email/Senha inválidos')
+            return res.status(401).send('Senha inválidos')
         } 
 
         //---passado isso tudo é hora de gerar o token--
@@ -61,7 +61,7 @@ module.exports = app => {
         try {
             if(userData) {
                 const token = jwt.decode(userData.toke, secret)
-                if(new Date(toke.exp * 1000) > new Date()) {
+                if(new Date(token.exp * 1000) > new Date()) {
                     return res.send(true)    
                 }
             }

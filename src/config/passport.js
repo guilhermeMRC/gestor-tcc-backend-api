@@ -4,7 +4,7 @@ const { Strategy, ExtractJwt } = passportJwt
 
 module.exports = app => {
     
-    const User = app.model.UserSchema.User
+    const User = app.src.model.UserSchema.User
     const secret = process.env.AUTH_SECRET
 
     // User.findById('5f6cff9d1fd62335b061fd24').exec().then(use => console.log(use))
