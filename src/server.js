@@ -29,6 +29,6 @@ consign()
     .then('./src/config/routes.js')
     .into(app)
     
-app.listen(process.env.APP_PORT_DEFAULT || process.env.APP_PORT_SECUNDARY, () => {
+app.listen(process.env.PORT || 3000, () => {
     console.log('Server running!')
 })
