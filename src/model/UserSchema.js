@@ -24,13 +24,21 @@ module.exports = app => {
         researchLine: String,
         userType: {
             type: String,
-            enum: ['Coordenador', 'Professor', 'Aluno']
+            enum: ['Coordenador', 'Professor', 'Aluno', 'Administrativo']
         },
         availability: {
             type: String,
             enum: ['sim', 'não']
+        },
+        passwordResetToken: {
+            type: "String",
+            default: "",
+            select: false,
+        },
+        passwordResetExpires: {
+            type: Date,
+            select: false,
         }
-
     })
 
     return { User }

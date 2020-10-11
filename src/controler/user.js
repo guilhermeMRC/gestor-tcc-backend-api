@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt')
 const { json } = require('express')
 const { use } = require('passport')
-
+const crypto = require('crypto');
 
 module.exports = app => {
     //funções de validação
@@ -13,15 +13,15 @@ module.exports = app => {
     //inportando o transporte para envio de email
     const transporter = app.src.controler.nodemailer.transporter
 
+    //impportando teamplate do e-mail formatado
+    const { formatEmail } = app.src.resources.template_email
+
     //função que encripta a senha
     const encryptPassword = password => {
         const salt = bcrypt.genSaltSync(10)
         return bcrypt.hashSync(password, salt)
     }
 
-    // const encryptIdUser = idUser => {
-
-    // }
 
     const saveUser = async (req, res) => {
         //confirmação de senha que não será salvo no banco
@@ -31,13 +31,18 @@ module.exports = app => {
             existOrError(req.body.name, 'Nome não informado')
             existOrError(req.body.registration, 'Matricula não informada')
             existOrError(req.body.password, 'Senha não informada')
+            existOrError(req.body.email, 'E-mail não informado')
             existOrError(confirmPassword, 'Confirmação de Senha inválida')
             equalsOrError(req.body.password, confirmPassword, 'Senhas não conferem')
 
-            const userFromDB = await User.findOne({registration: req.body.registration}).exec()
-            
-            if(userFromDB) {
+            const userFromDb = await User.findOne({registration: req.body.registration}).exec()
+            if(userFromDb) {
                 return res.status(404).send("Já possui um usuário cadastrado com essa matricula")
+            }
+
+            const userFromDb2 = await User.findOne({email: req.body.email}).exec()
+            if(userFromDb2) {
+                return res.status(404).send("Já possui um usuário cadastrado com esse e-mail")
             }
             
             //pegando dados de um novo usuário
@@ -47,7 +52,7 @@ module.exports = app => {
 
             user.password = encryptPassword(user.password)
         
-            const newUser = await user.save()
+            const newUser = await user.save() 
             res.status(201).json(newUser)
             
         }catch (msg) {
@@ -139,20 +144,23 @@ module.exports = app => {
             const user = await User.findOne({email: req.body.email}).exec()
             existOrError(user,"E-mail não cadastrado")
             
-            const defaultAdminEmail = "Guilherme Muniz <gestortcciff@gmail.com"
+            const defaultAdminEmail = process.env.SMTP_USER
+            
+            const token = crypto.randomBytes(20).toString("hex");
+            
+            //salvar no banco o token
+
+
+            const constructEmail = formatEmail(token)
+            
             const mailSent = await transporter.sendMail({
                 from: defaultAdminEmail,
                 to: user.email,
                 subject: "Recuperação de Senha Gestor TCC IFF",
-                text: "Teste"
+                html: constructEmail
             })
 
             res.status(200).json(mailSent)
-            
-        
-            // console.log(mailSent)
-            
-            // res.status(200).json(user)
             
         }catch(msg) {
             return res.status(400).send(msg)

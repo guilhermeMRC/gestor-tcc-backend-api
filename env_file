@@ -1,10 +1,15 @@
-APP_PORT= //numero da porta usada
-APP_DEBUG= //true ou false
+APP_PORT_DEFAULT=4001
+APP_PORT_SECUNDARY=3002
 
-//string de conexão *depois alterar o endereço
-DATABASE_STRING=mongodb: //string de conexão/nome do banco
 
-//use essa string caso conecte no banco local
-DATABASE_STRING=mongodb://localhost/gestor-tcc-db
+APP_DEBUG=true
 
-AUTH_SECRET= //chave secreta de autenticação
+DATABASE_STRING=mongodb://admin:iff12345@gestor-tcc-db-shard-00-01.94abg.mongodb.net:27017/gestor-tcc-db?authSource=admin&readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=true
+
+AUTH_SECRET='awewdaiondhasiu@@$!1548A789aE@'
+
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587,
+SMTP_USER=gestortcciff@gmail.com
+SMTP_PASS=#Iff12345    
+   

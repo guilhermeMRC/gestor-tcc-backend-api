@@ -19,6 +19,7 @@ app.mongoose = mongoose
 //autoload nas pastas 
 consign()
     .include('./src/config/middlewares.js')
+    .then('./src/resources')
     .then('./src/controler/nodemailer.js')
     .then('./src/controler/validation.js')
     .then('./src/model')
@@ -28,6 +29,6 @@ consign()
     .then('./src/config/routes.js')
     .into(app)
     
-app.listen(process.env.APP_PORT || 3000, () => {
+app.listen(process.env.APP_PORT_DEFAULT || process.env.APP_PORT_SECUNDARY, () => {
     console.log('Server running!')
 })
