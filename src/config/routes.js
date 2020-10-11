@@ -2,6 +2,8 @@ const { get } = require("mongoose")
 const isCoordenador = require('./isCoordenador')
 module.exports = app => {
     
+    app.get('/', "Rodando")
+
     app.post('/login', app.src.controler.auth.signin)
     // app.post('/validateToken', app.controler.auth.validateToken)
         
