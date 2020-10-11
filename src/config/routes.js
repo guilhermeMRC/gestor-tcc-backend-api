@@ -2,7 +2,11 @@ const { get } = require("mongoose")
 const isCoordenador = require('./isCoordenador')
 module.exports = app => {
     
-    app.get('/', "Rodando")
+    const routerDefault = async (req, res) => {
+        res.status(200).send("Ok")
+    }
+
+    app.get('/', routerDefault)
 
     app.post('/login', app.src.controler.auth.signin)
     // app.post('/validateToken', app.controler.auth.validateToken)
