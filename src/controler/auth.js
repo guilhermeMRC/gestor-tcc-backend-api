@@ -1,11 +1,15 @@
 const  jwt = require('jwt-simple')
-const bcrypt = require('bcrypt')
+
 
 module.exports = app => {
     //model para fazer consultas
     const User = app.src.model.UserSchema.User
     
+    //palavra chave para criar jwt
     const secret = process.env.AUTH_SECRET
+
+    //função que compara as senhas criptografadas
+    const { comparePassword } = app.src.config.bcrypt
 
     const signin = async (req, res) => {
         
@@ -27,10 +31,7 @@ module.exports = app => {
 
         //compara as duas senhas. 
         //Se a senha não conferir manda uma mensagem 
-        const isMatch = bcrypt.compareSync(req.body.password, user.password)
-        if(!isMatch){
-            return res.status(401).send('Senha inválidos')
-        } 
+        comparePassword(res, req.body.password, user.password)
 
         //---passado isso tudo é hora de gerar o token--
 
@@ -48,6 +49,12 @@ module.exports = app => {
             exp: momentNow + (60 * 60)
         }
 
+        await User.findByIdAndUpdate(user.id, {
+            '$set': {
+                tokenJwt: jwt.encode(payload, secret),
+            },
+        }).select("+tokenJwt");
+
         res.json({
             ...payload,
             token: jwt.encode(payload, secret)
@@ -60,9 +67,9 @@ module.exports = app => {
         const userData = req.body || null 
         try {
             if(userData) {
-                const token = jwt.decode(userData.toke, secret)
+                const token = jwt.decode(userData.token, secret)
                 if(new Date(token.exp * 1000) > new Date()) {
-                    return res.send(true)    
+                    return res.send("Token válido!")    
                 }
             }
         }catch(e) {

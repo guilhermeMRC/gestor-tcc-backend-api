@@ -1,9 +1,11 @@
-const bcrypt = require('bcrypt')
 const { json } = require('express')
 const { use } = require('passport')
 const crypto = require('crypto');
 
 module.exports = app => {
+    //função para encriptar senha
+    const { encryptPassword } = app.src.config.bcrypt
+    
     //funções de validação
     const { existOrError, notExistsOrError, equalsOrError } = app.src.controler.validation
 
@@ -13,15 +15,8 @@ module.exports = app => {
     //inportando o transporte para envio de email
     const transporter = app.src.controler.nodemailer.transporter
 
-    //impportando teamplate do e-mail formatado
+    //importando template do e-mail formatado
     const { formatEmail } = app.src.resources.template_email
-
-    //função que encripta a senha
-    const encryptPassword = password => {
-        const salt = bcrypt.genSaltSync(10)
-        return bcrypt.hashSync(password, salt)
-    }
-
 
     const saveUser = async (req, res) => {
         //confirmação de senha que não será salvo no banco
@@ -148,9 +143,6 @@ module.exports = app => {
             
             const token = crypto.randomBytes(20).toString("hex");
             
-            //salvar no banco o token
-
-
             const constructEmail = formatEmail(token)
             
             const mailSent = await transporter.sendMail({
@@ -160,6 +152,17 @@ module.exports = app => {
                 html: constructEmail
             })
 
+            const now = new Date();
+            now.setHours(now.getHours() + 1);
+
+            //salvar no banco o token
+            await User.findByIdAndUpdate(user.id, {
+                '$set': {
+                    passwordResetToken: token,
+                    passwordResetExpires: now,
+                },
+            });
+
             res.status(200).json(mailSent)
             
         }catch(msg) {
@@ -167,12 +170,47 @@ module.exports = app => {
         }
     }
 
-    return {
-        saveUser, 
-        listAllUsers, 
-        getUserByRegistration, 
-        getUserById, 
-        updateUser, 
-        forgotPassword 
+    //atualizar senha
+    const resetPassword = async (req, res) => { 
+        
+        try {
+            existOrError(req.body.token, 'token não informado')
+            existOrError(req.body.password, 'nova senha não informada')
+            existOrError(req.body.confirmPassword, 'confirmação de senha não informada')
+            
+            equalsOrError(req.body.password, req.body.confirmPassword, 'Senhas não conferem')
+
+            const user = await User.findOne({ passwordResetToken: req.body.token }).select(
+                "+passwordResetToken password passwordResetExpires"
+            );
+
+            existOrError(user, 'Token inválido')
+            equalsOrError(req.body.token, user.passwordResetToken, 'Token inválido')
+
+            const now = new Date();
+            if (now > user.passwordResetExpires)
+            return res.status(400).send("Token expirou, gere um novo token na tela de esqueci minha senha");
+
+            user.password = encryptPassword(req.body.password)
+
+            await user.save()
+            res.status(200).json(user)
+            
+            //caso precise redirecionar aqui   
+            // res.status(301).redirect('https://gestor-tcc-frontend-react.vercel.app/login')
+
+        } catch (msg) {
+            return res.status(400).send(msg)
+        }
     }
+
+        return {
+            saveUser, 
+            listAllUsers, 
+            getUserByRegistration, 
+            getUserById, 
+            updateUser, 
+            forgotPassword,
+            resetPassword 
+        }
 }

@@ -21,23 +21,47 @@ module.exports = app => {
             unique: true,
         },
         status: Boolean,
-        researchLine: String,
         userType: {
             type: String,
-            enum: ['Coordenador', 'Professor', 'Aluno', 'Administrativo']
+            enum: ['Professor', 'Aluno', 'Administrativo']
         },
-        availability: {
+        isCoordinator: {
+            type: Boolean,
+            default: false
+        },
+        profilePicture: {
             type: String,
-            enum: ['sim', 'não']
+            default: ''
+        },
+        aboutProfile: {
+            type: String, //ver se é o suficiente
+            default: ''
+        },
+        available: {
+            type: String,
+            enum: ['sim', 'não', 'nulo'],
+            default: 'nulo'
+        },
+        links: {
+            type: [],
+        },  
+        tokenJwt: {
+            type: String,
+            default: "",
+            select: false
         },
         passwordResetToken: {
-            type: "String",
+            type: String,
             default: "",
             select: false,
         },
         passwordResetExpires: {
             type: Date,
             select: false,
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now,
         }
     })
 
