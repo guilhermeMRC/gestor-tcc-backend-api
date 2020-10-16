@@ -49,35 +49,56 @@ module.exports = app => {
             exp: momentNow + (60 * 60)
         }
 
+        //validando o token
+        const tokenJWT = jwt.encode(payload, secret)
+        if(!validateToken(tokenJWT)) {
+            res.status(400).send("Token inválido")
+        }
+        
         await User.findByIdAndUpdate(user.id, {
             '$set': {
-                tokenJwt: jwt.encode(payload, secret),
+                tokenJwt: tokenJWT,
             },
         }).select("+tokenJwt");
 
         res.json({
             ...payload,
-            token: jwt.encode(payload, secret)
+            token: tokenJWT
         })
 
         
     }
 
-    const validateToken = async (req, res) => {
-        const userData = req.body || null 
+    function validateToken(tokenJWT) {
+        const userData = tokenJWT || null
         try {
             if(userData) {
-                const token = jwt.decode(userData.token, secret)
-                if(new Date(token.exp * 1000) > new Date()) {
-                    return res.send("Token válido!")    
+                const tokenDecode = jwt.decode(userData, secret)
+                if(new Date(tokenDecode.exp * 1000) > new Date()) {
+                    return true    
                 }
             }
         }catch(e) {
-
+            return false
         }
-        
-        res.send(false)
-    }
+                  
+    } 
 
-    return { signin, validateToken}
+    // const validateToken = async (req, res) => {
+    //     const userData = req.body || null 
+    //     try {
+    //         if(userData) {
+    //             const token = jwt.decode(userData.token, secret)
+    //             if(new Date(token.exp * 1000) > new Date()) {
+    //                 return res.send("Token válido!")    
+    //             }
+    //         }
+    //     }catch(e) {
+
+    //     }
+        
+    //     res.send(false)
+    // }
+
+    return { signin }
 }
