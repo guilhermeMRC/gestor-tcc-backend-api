@@ -30,12 +30,12 @@ consign()
     .then('./src/config/routes.js')
     .into(app)
 
-//quando enviar para produção descomentar essas linhas    
-// app.listen(process.env.PORT || 3000, () => {
-//     console.log('Server running!')
-// })
-
-// descomentar quando estiver trabalhando localmente
-app.listen(process.env.APP_PORT_DEFAULT || process.env.APP_PORT_SECUNDARY, () => {
+//Descomentar quando estiver pronto para Produção    
+app.listen(process.env.PORT || 3000, () => {
     console.log('Server running!')
 })
+
+//descomentar quando estiver trabalhando localmente
+// app.listen(process.env.APP_PORT_DEFAULT || process.env.APP_PORT_SECUNDARY, () => {
+//     console.log('Server running!')
+// })
