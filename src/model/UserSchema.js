@@ -1,6 +1,8 @@
+const { Mongoose } = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate-v2'); 
 module.exports = app => {
-    
-    const User = app.mongoose.model('User', {
+    // defino o Schema
+    const userSchema = app.mongoose.Schema({
         name: {
             type: String,
             required: true
@@ -64,6 +66,10 @@ module.exports = app => {
             default: Date.now,
         }
     })
+    
+    userSchema.plugin(mongoosePaginate)
+
+    const User = app.mongoose.model('User', userSchema)
 
     return { User }
 }

@@ -18,6 +18,11 @@ module.exports = app => {
         if(valueA !== valueB) throw msg
     }
 
-    return { existOrError, notExistsOrError, equalsOrError }
+    //checa se uma string é apenas número
+    function isNumeric(str) {
+        var er = /^[0-9]+$/;
+        return (er.test(str));
+    }
+    return { existOrError, notExistsOrError, equalsOrError, isNumeric }
 }
 

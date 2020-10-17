@@ -1,13 +1,14 @@
 const { json } = require('express')
 const { use } = require('passport')
 const crypto = require('crypto');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 module.exports = app => {
     //função para encriptar senha
     const { encryptPassword } = app.src.config.bcrypt
     
     //funções de validação
-    const { existOrError, notExistsOrError, equalsOrError } = app.src.controler.validation
+    const { existOrError, notExistsOrError, equalsOrError, isNumeric } = app.src.controler.validation
 
     //Importando o model
     const User = app.src.model.UserSchema.User
@@ -18,10 +19,9 @@ module.exports = app => {
     //importando template do e-mail formatado
     const { formatEmail } = app.src.resources.template_email
 
+    //Salvar usuário
     const saveUser = async (req, res) => {
-        //confirmação de senha que não será salvo no banco
         const confirmPassword = req.body.confirmPassword
-        
         try {
             existOrError(req.body.name, 'Nome não informado')
             existOrError(req.body.registration, 'Matricula não informada')
@@ -48,7 +48,7 @@ module.exports = app => {
             user.password = encryptPassword(user.password)
         
             const newUser = await user.save() 
-            res.status(201).json(newUser)
+            res.status(201).json({user: newUser, resposta: "Usuário Cadastrado com sucesso"})
             
         }catch (msg) {
             return res.status(400).send(msg)
@@ -56,14 +56,74 @@ module.exports = app => {
         
     }
 
-    //Listar todos os usuários
-    const listAllUsers = async (req, res) => {
+    const listAllUsersForTypeUser = async (req, res) => {
         try {
-            const users = await User.find()
-            res.json(users)
+            const query = User.find({userType : req.params.userType})
+                .select(
+                    "name registration email status userType isCoordinator createdAt"
+                );
+
+            let page = req.params.page    
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const users = await User.paginate(query, options)
+            existOrError(users.docs, "Nenhum usuário encontrado")
+            res.status(200).json(users)
+
         }catch(error) {
-            res.status(500).json({ message: error.message })
-        }
+            if(error === "Nenhum usuário encontrado") {
+                res.status(400).send(error)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }        
+        }   
+    }
+
+    const listAllUsersForTypeUserAndStatus = async (req, res) => {
+        try {
+            const query = User.find({userType : req.params.userType})
+                .where('status')
+                .equals(req.params.status)
+                .select(
+                    "name registration email status userType isCoordinator createdAt"
+                );
+
+            let page = req.params.page    
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const users = await User.paginate(query, options)
+            existOrError(users.docs, "Nenhum usuário encontrado")
+            res.status(200).json(users)
+
+            // const users = await User.find({userType : req.params.userType})
+            //     .where('status')
+            //     .equals(req.params.status)
+            //     .select(
+            //         "name registration email status userType isCoordinator createdAt"
+            //     );
+            
+            // existOrError(users, "Nenhum usuário encontrado")
+
+            // res.json(users)
+        }catch(error) {
+            if(error === "Nenhum usuário encontrado") {
+                res.status(400).send(error)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }        
+        }   
     }
 
     //filtrar usuário pela matrícula
@@ -74,7 +134,7 @@ module.exports = app => {
             const user = await User.findOne({ registration: req.params.registration }).exec() 
             
             if(user == null) {
-                return res.status(404).send("Usuário não encontrado")
+                return res.status(400).send("Usuário não encontrado")
             }else {
                 return res.status(200).json(user)
             }
@@ -85,50 +145,57 @@ module.exports = app => {
         
     }
 
-    //filtrar usuario pelo id
-    const getUserById = async (req, res) => {
-       
-        try {
-            
-            const user = await User.findById(req.params.id)
-            
-            if(user == null) {
-                return res.status(404).send("Usuário não encontrado")
-            }else {
-                return res.status(200).json(user)
-            }
-
-        }catch(error) {
-            return res.status(500).json({message: error.message})
-        }
-        
-    }
-
-    //atualizar usuário no banco
-    //mexer nele depois
     const updateUser = async (req, res) => {
         try { 
-            
-            const user = await User.findById(req.params.id)
-            
-            if(user == null) {
-                return res.status(404).send("Usuário não encontrado")
-            }
+               
+            const user = await User.findOne({registration: req.params.registration})
+                .where('userType')
+                .equals(req.params.userType)
+                .select("name registration email status userType isCoordinator createdAt");
+                
+            existOrError(user, "Nenhum usuário encontrado")
 
             existOrError(req.body.name, 'Nome não informado')
-            user.name = req.body.name
             existOrError(req.body.registration, 'Matricula não informada')
-            user.registration = req.body.registration
+            existOrError(req.body.email, 'E-mail não informado')
+            existOrError(req.body.userType, 'Tipo de usuário não informado')
 
-            try {
-                    const userUpdate = await user.save() 
-                    res.json(userUpdate)   
-            } catch (msg) {
-                    res.status(400).send(msg)
+            user.name = req.body.name
+            user.registration = req.body.registration
+            user.email = req.body.email
+            user.status = req.body.status
+            user.userType = req.body.userType
+
+            if(req.params.userType === 'Professor') {
+                user.isCoordenator = req.body.isCoordenator
+            }else {
+                user.isCoordenator = false
             }
+            
+            await user.save()
+
+            res.status(200).json({user, sucesso: "Usuário editado com sucesso"})
 
         }catch(msg) {
-            return res.status(500).send(msg)
+            switch(msg) {
+                case 'Nenhum usuário encontrado': 
+                    res.status(400).send('Nenhum usuário encontrado')
+                    break
+                case 'Nome não informado':
+                    res.status(400).send('Nome não informado')
+                    break
+                case 'Matricula não informada':
+                    res.status(400).send('Matricula não informada')
+                    break
+                case 'E-mail não informado':
+                    res.status(400).send('E-mail não informado')
+                    break
+                case 'Tipo de usuário não informado': 
+                    res.status(400).send('Tipo de usuário não informado')
+                    break
+                default: 
+                    res.status(500).send('Erro interno')   
+            }   
         }
     }
 
@@ -206,11 +273,11 @@ module.exports = app => {
 
         return {
             saveUser, 
-            listAllUsers, 
+            listAllUsersForTypeUser,
+            listAllUsersForTypeUserAndStatus,  
             getUserByRegistration, 
-            getUserById, 
             updateUser, 
             forgotPassword,
-            resetPassword 
+            resetPassword      
         }
 }
