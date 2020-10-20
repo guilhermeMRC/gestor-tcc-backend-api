@@ -29,6 +29,9 @@ module.exports = app => {
             return res.status(400).send('Usuário não encontrado!')
         }
 
+        if(!user.status) {
+            return res.status(400).json({mensagem: 'Usuário está inativo. Por favor entre em contato com a coordenação de ensino.'})
+        }
         //compara as duas senhas. 
         //Se a senha não conferir manda uma mensagem 
         comparePassword(res, req.body.password, user.password)
@@ -45,6 +48,8 @@ module.exports = app => {
             id: user.id,
             name: user.name,
             registration: user.registration,
+            email: user.email,
+            userType: user.userType,
             iat: momentNow,
             exp: momentNow + (60 * 60)
         }
