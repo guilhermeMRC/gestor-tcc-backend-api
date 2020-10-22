@@ -22,10 +22,13 @@ module.exports = app => {
             required: true,
             unique: true,
         },
-        status: Boolean,
+        status: {
+            type: String,
+            enum: ['ativo', 'inativo']
+        },
         userType: {
             type: String,
-            enum: ['Professor', 'Aluno', 'Administrativo']
+            enum: ['professor', 'aluno', 'administrativo']
         },
         isCoordinator: {
             type: Boolean,

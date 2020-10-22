@@ -107,16 +107,6 @@ module.exports = app => {
             existOrError(users.docs, "Nenhum usuário encontrado")
             res.status(200).json(users)
 
-            // const users = await User.find({userType : req.params.userType})
-            //     .where('status')
-            //     .equals(req.params.status)
-            //     .select(
-            //         "name registration email status userType isCoordinator createdAt"
-            //     );
-            
-            // existOrError(users, "Nenhum usuário encontrado")
-
-            // res.json(users)
         }catch(error) {
             if(error === "Nenhum usuário encontrado") {
                 res.status(400).send(error)
@@ -126,31 +116,49 @@ module.exports = app => {
         }   
     }
 
-    //filtrar usuário pela matrícula
-    const getUserByRegistration = async (req, res) => {
+    //filtrar usuário pela matrícula ou nome
+    const getUserByRegistrationOrName = async (req, res) => {
        
         try {
             
-            const user = await User.findOne({ registration: req.params.registration }).exec() 
-            
-            if(user == null) {
-                return res.status(400).send("Usuário não encontrado")
-            }else {
-                return res.status(200).json(user)
-            }
+            const nameOrRegistration = req.params.nome_ou_matricula
+            const query = User.find({ $or: [
+                    {registration: nameOrRegistration},
+                    {name: new RegExp(nameOrRegistration, "i")}
+                ]
+            }).select(
+                "name registration email status userType isCoordinator createdAt"
+            );
+
+            let page = req.params.page    
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const users = await User.paginate(query, options)
+            existOrError(users.docs, 'Nenhum usuário encontrado')
+
+            res.status(200).json(users)
 
         }catch(error) {
-            return res.status(500).json({message: error.message})
+            if(error === "Nenhum usuário encontrado") {
+                res.status(400).send(error)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }    
         }
         
     }
 
     const updateUser = async (req, res) => {
         try { 
-               
-            const user = await User.findOne({registration: req.params.registration})
-                .where('userType')
-                .equals(req.params.userType)
+            
+            const userTypes = ['professor', 'aluno', 'administrativo']
+            const user = await User.findOne({ _id: req.body.id })
                 .select("name registration email status userType isCoordinator createdAt");
                 
             existOrError(user, "Nenhum usuário encontrado")
@@ -205,6 +213,8 @@ module.exports = app => {
             existOrError(req.body.email,"e-mail, não informado")
             const user = await User.findOne({email: req.body.email}).exec()
             existOrError(user,"E-mail não cadastrado")
+
+            equalsOrError(user.status, 'ativo', "Não é possivel recuperar senha. Usuário está inativo. Por favor, entre em contato com a coordenação.")
             
             const defaultAdminEmail = process.env.SMTP_USER
             
@@ -261,7 +271,7 @@ module.exports = app => {
             user.password = encryptPassword(req.body.password)
 
             await user.save()
-            res.status(200).json(user)
+            res.status(200).json({user, resposta: 'Senha alterada com sucesso!'})
             
             //caso precise redirecionar aqui   
             // res.status(301).redirect('https://gestor-tcc-frontend-react.vercel.app/login')
@@ -275,7 +285,7 @@ module.exports = app => {
             saveUser, 
             listAllUsersForTypeUser,
             listAllUsersForTypeUserAndStatus,  
-            getUserByRegistration, 
+            getUserByRegistrationOrName, 
             updateUser, 
             forgotPassword,
             resetPassword      

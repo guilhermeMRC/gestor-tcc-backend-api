@@ -38,7 +38,7 @@ module.exports = app => {
         .all(app.src.config.passport.authenticate())
         .post(isCoordinator(app.src.controler.user.saveUser))
 
-    //==============rotas para Listar e alterar usuários==================//
+    //==============rotas para Listar==================//
     
     //Listar todos os usuários por tipo de usuário [Professor, Aluno ou Administrativo]
     app.route('/usuarios/todos_usuarios/:userType/:page')
@@ -49,22 +49,22 @@ module.exports = app => {
     app.route('/usuarios/todos_usuarios/:userType/:status/:page')
         .all(app.src.config.passport.authenticate())
         .get(isCoordinator(app.src.controler.user.listAllUsersForTypeUserAndStatus))
+
+    app.route('/usuarios/listar_usuarios/:nome_ou_matricula/:page')
+        .all(app.src.config.passport.authenticate())
+        .get(isCoordinator(app.src.controler.user.getUserByRegistrationOrName))
     
-    //Update no usuário
-    app.route('/usuarios/todos_usuarios/:userType/:registration')  
+    //==============rotas para Atualizar usuário==================// 
+    app.route('/usuarios/todos_usuarios/atualizar_aluno')  
+        .all(app.src.config.passport.authenticate())
+        .patch(isCoordinator(app.src.controler.user.updateUser))
+
+    app.route('/usuarios/todos_usuarios/atualizar_aluno')  
         .all(app.src.config.passport.authenticate())
         .patch(isCoordinator(app.src.controler.user.updateUser))
     
-    // app.route('/usuarios/todos_usuarios/atualizar_aluno')  
-    //     .all(app.src.config.passport.authenticate())
-    //     .patch(isCoordinator(app.src.controler.user.updateUser))
-
-    // app.route('/usuarios/todos_usuarios/atualizar_aluno')  
-    //     .all(app.src.config.passport.authenticate())
-    //     .patch(isCoordinator(app.src.controler.user.updateUser))
-    
-    // app.route('/usuarios/todos_usuarios/atualizar_adminstrativo')  
-    //     .all(app.src.config.passport.authenticate())
-    //     .patch(isCoordinator(app.src.controler.user.updateUser))
+    app.route('/usuarios/todos_usuarios/atualizar_adminstrativo')  
+        .all(app.src.config.passport.authenticate())
+        .patch(isCoordinator(app.src.controler.user.updateUser))
     
 }
