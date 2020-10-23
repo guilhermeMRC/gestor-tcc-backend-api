@@ -174,7 +174,7 @@ module.exports = app => {
             user.status = req.body.status
             user.userType = req.body.userType
 
-            if(req.params.userType === 'Professor') {
+            if(req.params.userType === 'professor') {
                 user.isCoordenator = req.body.isCoordenator
             }else {
                 user.isCoordenator = false
