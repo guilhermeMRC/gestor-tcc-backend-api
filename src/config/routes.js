@@ -59,7 +59,7 @@ module.exports = app => {
         .all(app.src.config.passport.authenticate())
         .patch(isCoordinator(app.src.controler.user.updateUser))
 
-    app.route('/usuarios/todos_usuarios/atualizar_aluno')  
+    app.route('/usuarios/todos_usuarios/atualizar_professor')  
         .all(app.src.config.passport.authenticate())
         .patch(isCoordinator(app.src.controler.user.updateUser))
     
