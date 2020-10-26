@@ -157,7 +157,6 @@ module.exports = app => {
     const updateUser = async (req, res) => {
         try { 
             
-            const userTypes = ['professor', 'aluno', 'administrativo']
             const user = await User.findOne({ _id: req.body.id })
                 .select("name registration email status userType isCoordinator createdAt");
                 
@@ -174,15 +173,15 @@ module.exports = app => {
             user.status = req.body.status
             user.userType = req.body.userType
 
-            if(req.params.userType === 'professor') {
-                user.isCoordenator = req.body.isCoordenator
+            if(req.body.userType === 'professor') {
+                user.isCoordinator = req.body.isCoordinator
             }else {
-                user.isCoordenator = false
+                user.isCoordinator = false
             }
             
             await user.save()
 
-            res.status(200).json({user, sucesso: "Usuário editado com sucesso"})
+            res.status(200).json({user, mensagem: "Usuário editado com sucesso"})
 
         }catch(msg) {
             switch(msg) {
