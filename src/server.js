@@ -20,6 +20,7 @@ app.mongoose = mongoose
 consign()
     .include('./src/config/middlewares.js')
     .then('./src/config/bcrypt.js')
+    .then('./src/config/multer.js')
     .then('./src/resources')
     .then('./src/controler/nodemailer.js')
     .then('./src/controler/validation.js')
@@ -32,12 +33,12 @@ consign()
 
 //=====================Produção================================    
 //Descomentar quando estiver pronto para Produção    
-app.listen(process.env.PORT || 3000, () => {
-    console.log('Server running!')
-})
+// app.listen(process.env.PORT || 3000, () => {
+//     console.log('Server running!')
+// })
 
 //=====================Desenvolvimento===========================
 //descomentar quando estiver trabalhando localmente
-// app.listen(process.env.APP_PORT_DEFAULT || process.env.APP_PORT_SECUNDARY, () => {
-//     console.log('Server running!')
-// })
+app.listen(process.env.APP_PORT_DEFAULT || process.env.APP_PORT_SECUNDARY, () => {
+    console.log('Server running!')
+})

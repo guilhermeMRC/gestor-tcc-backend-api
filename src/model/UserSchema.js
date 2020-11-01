@@ -1,3 +1,4 @@
+const { Schema } = require('mongoose');
 const { Mongoose } = require('mongoose');
 const mongoosePaginate = require('mongoose-paginate-v2'); 
 module.exports = app => {
@@ -34,10 +35,7 @@ module.exports = app => {
             type: Boolean,
             default: false
         },
-        profilePicture: {
-            type: String,
-            default: ''
-        },
+        profilePicture: Schema.Types.Mixed,
         aboutProfile: {
             type: String, //ver se é o suficiente
             default: ''
