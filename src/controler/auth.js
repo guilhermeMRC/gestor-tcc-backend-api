@@ -39,6 +39,8 @@ module.exports = app => {
                 registration: user.registration,
                 email: user.email,
                 userType: user.userType,
+                isCoordinator: user.isCoordinator,
+                available: user.available,
                 iat: momentNow,
                 exp: momentNow + (60 * 60)
             }
