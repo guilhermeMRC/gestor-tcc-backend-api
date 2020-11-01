@@ -35,7 +35,10 @@ module.exports = app => {
             type: Boolean,
             default: false
         },
-        profilePicture: Schema.Types.Mixed,
+        profilePicture: {
+            type: Object,
+            default: {}
+        },
         aboutProfile: {
             type: String, //ver se é o suficiente
             default: ''

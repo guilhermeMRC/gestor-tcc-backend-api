@@ -5,20 +5,20 @@ const multerS3 = require('multer-s3')
 const aws = require('aws-sdk')
 
 const storageTypes = {
-    local: multer.diskStorage({
-        destination: (req, file, cb) => {
-            cb(null, path.resolve(__dirname, '..', '..','tmp', 'uploads_images'))    
-        },
-        filename: (req, file, cb) => {
-            crypto.randomBytes(16, (err, hash) => {
-                if(err) cb(err)
+    // local: multer.diskStorage({
+    //     destination: (req, file, cb) => {
+    //         cb(null, path.resolve(__dirname, '..', '..','tmp', 'uploads_images'))    
+    //     },
+    //     filename: (req, file, cb) => {
+    //         crypto.randomBytes(16, (err, hash) => {
+    //             if(err) cb(err)
 
-                file.key = `${hash.toString('hex')}-${file.originalname}`
+    //             file.key = `${hash.toString('hex')}-${file.originalname}`
 
-                cb(null, file.key)
-            })
-        }
-    }),
+    //             cb(null, file.key)
+    //         })
+    //     }
+    // }),
     s3: multerS3({
         s3: new aws.S3(),
         bucket: 'gestor-uploads/upload_images',

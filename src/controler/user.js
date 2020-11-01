@@ -2,6 +2,10 @@ const { json } = require('express')
 const { use } = require('passport')
 const crypto = require('crypto');
 const mongoosePaginate = require('mongoose-paginate-v2');
+const moment = require('moment')
+const aws = require('aws-sdk')
+
+const s3 = new aws.S3()
 
 module.exports = app => {
     //função para encriptar senha
@@ -45,10 +49,17 @@ module.exports = app => {
                 ...req.body
             })
 
+            if(user.userType !== 'administrativo') {
+                user.profilePicture = {
+                    nome: 'none'
+                }
+            }
+            
             user.password = encryptPassword(user.password)
         
             const newUser = await user.save() 
             res.status(201).json({user: newUser, resposta: "Usuário Cadastrado com sucesso"})
+        
             
         }catch (msg) {
             return res.status(400).send(msg)
@@ -206,6 +217,41 @@ module.exports = app => {
         }
     }
 
+    const updateProfileUser = async (req, res) => {
+        try{
+            const {originalname: namePicture, size, key, location: url = "" } = req.file 
+            const user = await User.findOne({ _id: req.body.id })
+            
+            //checa se o objeto está vazio se ele estiver vazio
+            //ele vai até o buket e apaga a foto antiga antes de salvar a nova
+            const count = Object.entries(user.profilePicture).length 
+            if(count !== 0 || user.profilePicture === null || user.profilePicture === undefined) {
+                s3.deleteObject({
+                    Bucket: 'gestor-uploads/upload_images',
+                    Key: user.profilePicture.key   
+                }).promise()
+                
+            }
+
+            const codPicture = key.split("-")
+            const picture = {
+                cod: codPicture[0],
+                namePicture,
+                size,
+                key,
+                url,
+                createdAt: moment().format()
+            }
+
+            user.profilePicture = picture
+            await user.save()
+
+            return(res.json(user))
+        }catch(msg) {
+            return res.status(400).json({message: 'deu erro'})
+        }
+    } 
+
     //usuário esqueceu a senha
     const forgotPassword = async (req, res) => { 
         try {
@@ -285,7 +331,8 @@ module.exports = app => {
             listAllUsersForTypeUser,
             listAllUsersForTypeUserAndStatus,  
             getUserByRegistrationOrName, 
-            updateUser, 
+            updateUser,
+            updateProfileUser, 
             forgotPassword,
             resetPassword      
         }

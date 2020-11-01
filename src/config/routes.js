@@ -2,12 +2,11 @@ const { get } = require("mongoose")
 const isCoordinator = require('./isCoordinator')
 const multer = require('multer')
 const multerConfig = require('./multer')
-const aws = require('aws-sdk')
 const { Mongoose } = require("mongoose")
-const { mongo } = require("mongoose")
-const moment = require('moment')
 
-const s3 = new aws.S3()
+// const moment = require('moment')
+
+// const s3 = new aws.S3()
 module.exports = app => {
     const User = app.src.model.UserSchema.User
 
@@ -77,35 +76,7 @@ module.exports = app => {
         .patch(isCoordinator(app.src.controler.user.updateUser))
 
     app.route('/usuarios/atualizar_perfil/aluno')
-        .patch(multer(multerConfig).single('file'), async(req, res) => {
-            const {originalname: namePicture, size, key, location: url = "" } = req.file 
-            const user = await User.findOne({ _id: req.body.id })
-            // console.log(user.profilePicture.key)
-            
-            const count = Object.entries(user.profilePicture).length 
-            if(count !== 0) {
-                s3.deleteObject({
-                    Bucket: 'gestor-uploads/upload_images',
-                    Key: user.profilePicture.key   
-                }).promise()
-                
-            }
-
-            const codPicture = key.split("-")
-            const picture = {
-                cod: codPicture[0],
-                namePicture,
-                size,
-                key,
-                url,
-                createdAt: moment().format()
-            }
-
-            user.profilePicture = picture
-            await user.save()
-
-            return(res.json(user))
-        })
+        .patch(multer(multerConfig).single('file'), app.src.controler.user.updateProfileUser)
         .get(async (req, res) => {
             //basta criar uma query para trazer só informações de perfil
             const user = await User.find()
