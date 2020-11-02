@@ -5,6 +5,12 @@ AWS_ACCESS_KEY_ID=AKIA554TWSHVCK32DBPK
 AWS_SECRET_ACCESS_KEY=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
 AWS_DEFAULT_REGION=us-east-01
 
+AWS_STORAGE_IMAGE=gestor-uploads/upload_images_local (trabalhando local)
+AWS_STORAGE_IMAGE=gestor-uploads/upload_images_  (quando estiver mexendo com a produção)
+
+AWS_STORAGE_DOCUMENTATION=gestor-uploads/uploads_documentation_local (trabalhando local)
+AWS_STORAGE_DOCUMENTATION=gestor-uploads/uploads_documentation (quando estiver mexendo com a produção)
+
 APP_URL=http://localhost:3000
 
 DATABASE_STRING=mongodb://admin:iff12345@gestor-tcc-db-shard-00-01.94abg.mongodb.net:27017/gestor-tcc-db?authSource=admin&readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=true

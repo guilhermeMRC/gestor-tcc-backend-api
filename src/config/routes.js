@@ -1,14 +1,16 @@
 const { get } = require("mongoose")
 const isCoordinator = require('./isCoordinator')
 const multer = require('multer')
-const multerConfig = require('./multer')
+// const multerConfig = require('./multer')
 const { Mongoose } = require("mongoose")
 
-// const moment = require('moment')
 
-// const s3 = new aws.S3()
 module.exports = app => {
     const User = app.src.model.UserSchema.User
+    const Documentation = app.src.model.DocumentationSchema.Documentation
+
+    const multerConfigImages = app.src.config.multer.uploadImages
+    const multerConfigDocuments = app.src.config.multer.uploadDocumentation
 
     const routerDefault = async (req, res) => {
         res.status(200).send("Serviço funcionando")
@@ -46,7 +48,7 @@ module.exports = app => {
         .all(app.src.config.passport.authenticate())
         .post(isCoordinator(app.src.controler.user.saveUser))
 
-    //==============rotas para Listar==================//
+    //==============rotas para Listar usuário==================//
     
     //Listar todos os usuários por tipo de usuário [Professor, Aluno ou Administrativo]
     app.route('/usuarios/todos_usuarios/:userType/:page')
@@ -77,6 +79,9 @@ module.exports = app => {
 
     app.route('/usuarios/atualizar_perfil')
         .all(app.src.config.passport.authenticate())
-        .patch(multer(multerConfig).single('file'), app.src.controler.user.updateProfileUser)
-        
+        .patch(multer(multerConfigImages).single('file'), app.src.controler.user.updateProfileUser)
+    
+    //===============Cadastro de Documentos relativos ao Curso==============================
+    app.route('/documentos/cadastrar_documento')
+        .post(multer(multerConfigDocuments).single('file'),app.src.controler.documentation.saveDocuments)    
 }

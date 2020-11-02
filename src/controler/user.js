@@ -232,7 +232,7 @@ module.exports = app => {
                 
                 if(count !== 0) {
                     s3.deleteObject({
-                        Bucket: 'gestor-uploads/upload_images',
+                        Bucket: process.env.AWS_STORAGE_IMAGE,
                         Key: user.profilePicture.key   
                     }).promise()
                 }
@@ -247,7 +247,7 @@ module.exports = app => {
                     createdAt: moment().format()
                 }
                 user.profilePicture = picture
-                console.log(user)
+    
             }
             
             user.available = req.body.available
@@ -255,7 +255,7 @@ module.exports = app => {
             user.links = req.body.links
             
             await user.save()
-            res.json(user)
+            res.status(200).json({user, message: 'Perfil atualizado com sucesso'})
         }catch(msg) {
             return res.status(400).json({message: msg})
         }
