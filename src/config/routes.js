@@ -75,13 +75,13 @@ module.exports = app => {
         .all(app.src.config.passport.authenticate())
         .patch(isCoordinator(app.src.controler.user.updateUser))
 
-    app.route('/usuarios/atualizar_perfil/aluno')
+    app.route('/usuarios/atualizar_perfil')
         .patch(multer(multerConfig).single('file'), app.src.controler.user.updateProfileUser)
-        .get(async (req, res) => {
-            //basta criar uma query para trazer só informações de perfil
-            const user = await User.find()
-            res.json(user)
-        })
+        // .get(async (req, res) => {
+        //     //basta criar uma query para trazer só informações de perfil
+        //     const user = await User.find()
+        //     res.json(user)
+        // })
         
     
 }

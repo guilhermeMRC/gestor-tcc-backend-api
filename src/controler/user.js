@@ -49,11 +49,11 @@ module.exports = app => {
                 ...req.body
             })
 
-            if(user.userType !== 'administrativo') {
-                user.profilePicture = {
-                    nome: 'none'
-                }
-            }
+            // if(user.userType !== 'administrativo') {
+            //     user.profilePicture = {
+            //         nome: 'none'
+            //     }
+            // }
             
             user.password = encryptPassword(user.password)
         
@@ -219,36 +219,43 @@ module.exports = app => {
 
     const updateProfileUser = async (req, res) => {
         try{
-            const {originalname: namePicture, size, key, location: url = "" } = req.file 
             const user = await User.findOne({ _id: req.body.id })
             
-            //checa se o objeto está vazio se ele estiver vazio
-            //ele vai até o buket e apaga a foto antiga antes de salvar a nova
-            const count = Object.entries(user.profilePicture).length 
-            if(count !== 0 || user.profilePicture === null || user.profilePicture === undefined) {
-                s3.deleteObject({
-                    Bucket: 'gestor-uploads/upload_images',
-                    Key: user.profilePicture.key   
-                }).promise()
+            if(req.file) {
                 
+                const {originalname: namePicture, size, key, location: url = "" } = req.file 
+                //checa se o objeto está vazio se ele estiver vazio
+                //ele vai até o buket e apaga a foto antiga antes de salvar a nova
+                const count = Object.entries(user.profilePicture).length
+                
+                if(count !== 0) {
+                    s3.deleteObject({
+                        Bucket: 'gestor-uploads/upload_images',
+                        Key: user.profilePicture.key   
+                    }).promise()
+                }
+                
+                const codPicture = key.split("-")
+                const picture = {
+                    cod: codPicture[0],
+                    namePicture,
+                    size,
+                    key,
+                    url,
+                    createdAt: moment().format()
+                }
+                user.profilePicture = picture
+                console.log(user)
             }
-
-            const codPicture = key.split("-")
-            const picture = {
-                cod: codPicture[0],
-                namePicture,
-                size,
-                key,
-                url,
-                createdAt: moment().format()
-            }
-
-            user.profilePicture = picture
+            
+            user.available = req.body.available
+            user.aboutProfile = req.body.aboutProfile
+            user.links = req.body.links
+            
             await user.save()
-
-            return(res.json(user))
+            res.json(user)
         }catch(msg) {
-            return res.status(400).json({message: 'deu erro'})
+            return res.status(400).json({message: msg})
         }
     } 
 
@@ -326,14 +333,14 @@ module.exports = app => {
         }
     }
 
-        return {
-            saveUser, 
-            listAllUsersForTypeUser,
-            listAllUsersForTypeUserAndStatus,  
-            getUserByRegistrationOrName, 
-            updateUser,
-            updateProfileUser, 
-            forgotPassword,
-            resetPassword      
-        }
+    return {
+        saveUser, 
+        listAllUsersForTypeUser,
+        listAllUsersForTypeUserAndStatus,  
+        getUserByRegistrationOrName, 
+        updateUser,
+        updateProfileUser, 
+        forgotPassword,
+        resetPassword      
+    }
 }
