@@ -1,3 +1,4 @@
+const { Schema } = require('mongoose');
 const { Mongoose } = require('mongoose');
 const mongoosePaginate = require('mongoose-paginate-v2'); 
 module.exports = app => {
@@ -35,8 +36,8 @@ module.exports = app => {
             default: false
         },
         profilePicture: {
-            type: String,
-            default: ''
+            type: Object,
+            default: {}
         },
         aboutProfile: {
             type: String, //ver se é o suficiente

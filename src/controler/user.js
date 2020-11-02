@@ -2,6 +2,10 @@ const { json } = require('express')
 const { use } = require('passport')
 const crypto = require('crypto');
 const mongoosePaginate = require('mongoose-paginate-v2');
+const moment = require('moment')
+const aws = require('aws-sdk')
+
+const s3 = new aws.S3()
 
 module.exports = app => {
     //função para encriptar senha
@@ -45,10 +49,17 @@ module.exports = app => {
                 ...req.body
             })
 
+            // if(user.userType !== 'administrativo') {
+            //     user.profilePicture = {
+            //         nome: 'none'
+            //     }
+            // }
+            
             user.password = encryptPassword(user.password)
         
             const newUser = await user.save() 
             res.status(201).json({user: newUser, resposta: "Usuário Cadastrado com sucesso"})
+        
             
         }catch (msg) {
             return res.status(400).send(msg)
@@ -206,6 +217,48 @@ module.exports = app => {
         }
     }
 
+    const updateProfileUser = async (req, res) => {
+        try{
+            const user = await User.findOne({ _id: req.body.id })
+            
+            if(req.file) {
+                
+                const {originalname: namePicture, size, key, location: url = "" } = req.file 
+                //checa se o objeto está vazio se ele estiver vazio
+                //ele vai até o buket e apaga a foto antiga antes de salvar a nova
+                const count = Object.entries(user.profilePicture).length
+                
+                if(count !== 0) {
+                    s3.deleteObject({
+                        Bucket: 'gestor-uploads/upload_images',
+                        Key: user.profilePicture.key   
+                    }).promise()
+                }
+                
+                const codPicture = key.split("-")
+                const picture = {
+                    cod: codPicture[0],
+                    namePicture,
+                    size,
+                    key,
+                    url,
+                    createdAt: moment().format()
+                }
+                user.profilePicture = picture
+                console.log(user)
+            }
+            
+            user.available = req.body.available
+            user.aboutProfile = req.body.aboutProfile
+            user.links = req.body.links
+            
+            await user.save()
+            res.json(user)
+        }catch(msg) {
+            return res.status(400).json({message: msg})
+        }
+    } 
+
     //usuário esqueceu a senha
     const forgotPassword = async (req, res) => { 
         try {
@@ -280,13 +333,14 @@ module.exports = app => {
         }
     }
 
-        return {
-            saveUser, 
-            listAllUsersForTypeUser,
-            listAllUsersForTypeUserAndStatus,  
-            getUserByRegistrationOrName, 
-            updateUser, 
-            forgotPassword,
-            resetPassword      
-        }
+    return {
+        saveUser, 
+        listAllUsersForTypeUser,
+        listAllUsersForTypeUserAndStatus,  
+        getUserByRegistrationOrName, 
+        updateUser,
+        updateProfileUser, 
+        forgotPassword,
+        resetPassword      
+    }
 }

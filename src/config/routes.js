@@ -1,7 +1,15 @@
 const { get } = require("mongoose")
 const isCoordinator = require('./isCoordinator')
+const multer = require('multer')
+const multerConfig = require('./multer')
+const { Mongoose } = require("mongoose")
+
+// const moment = require('moment')
+
+// const s3 = new aws.S3()
 module.exports = app => {
-    
+    const User = app.src.model.UserSchema.User
+
     const routerDefault = async (req, res) => {
         res.status(200).send("Serviço funcionando")
     }
@@ -66,5 +74,14 @@ module.exports = app => {
     app.route('/usuarios/todos_usuarios/atualizar_administrativo')  
         .all(app.src.config.passport.authenticate())
         .patch(isCoordinator(app.src.controler.user.updateUser))
+
+    app.route('/usuarios/atualizar_perfil')
+        .patch(multer(multerConfig).single('file'), app.src.controler.user.updateProfileUser)
+        // .get(async (req, res) => {
+        //     //basta criar uma query para trazer só informações de perfil
+        //     const user = await User.find()
+        //     res.json(user)
+        // })
+        
     
 }
