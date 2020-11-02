@@ -58,7 +58,7 @@ module.exports = app => {
         .all(app.src.config.passport.authenticate())
         .get(isCoordinator(app.src.controler.user.listAllUsersForTypeUserAndStatus))
 
-    app.route('/usuarios/listar_usuarios/:nome_ou_matricula/:page')
+    app.route('/usuarios/listar_usuarios/:userType/:nome_ou_matricula/:page')
         .all(app.src.config.passport.authenticate())
         .get(isCoordinator(app.src.controler.user.getUserByRegistrationOrName))
     
@@ -76,12 +76,7 @@ module.exports = app => {
         .patch(isCoordinator(app.src.controler.user.updateUser))
 
     app.route('/usuarios/atualizar_perfil')
+        .all(app.src.config.passport.authenticate())
         .patch(multer(multerConfig).single('file'), app.src.controler.user.updateProfileUser)
-        // .get(async (req, res) => {
-        //     //basta criar uma query para trazer só informações de perfil
-        //     const user = await User.find()
-        //     res.json(user)
-        // })
         
-    
 }

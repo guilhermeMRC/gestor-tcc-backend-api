@@ -1,6 +1,10 @@
 APP_PORT_DEFAULT=4001
 APP_PORT_SECUNDARY=3001
 
+AWS_ACCESS_KEY_ID=AKIA554TWSHVCK32DBPK
+AWS_SECRET_ACCESS_KEY=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
+AWS_DEFAULT_REGION=us-east-01
+
 APP_URL=http://localhost:3000
 
 DATABASE_STRING=mongodb://admin:iff12345@gestor-tcc-db-shard-00-01.94abg.mongodb.net:27017/gestor-tcc-db?authSource=admin&readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=true
@@ -12,4 +16,4 @@ AUTH_SECRET='awewdaiondhasiu@@$!1548A789aE@'
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587,
 SMTP_USER=gestortcciff@gmail.com
-SMTP_PASS=#Iff12345    
+SMTP_PASS=#Iff12345
