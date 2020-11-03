@@ -81,6 +81,10 @@ module.exports = app => {
         .all(app.src.config.passport.authenticate())
         .patch(multer(multerConfigImages).single('file'), app.src.controler.user.updateProfileUser)
     
+    app.route('/usuarios/atualizar_status')
+        .all(app.src.config.passport.authenticate())
+        .put(isCoordinator(app.src.controler.user.updateUserStatus))
+    
     //===============Cadastro de Documentos relativos ao Curso==============================
     app.route('/documentos/cadastrar_documento')
         .post(multer(multerConfigDocuments).single('file'),app.src.controler.documentation.saveDocuments)    

@@ -219,6 +219,34 @@ module.exports = app => {
         }
     }
 
+    const updateUserStatus = async (req, res) => {
+        try {
+            existOrError(req.body.id, 'id não informado')
+            const user = await User.findOne({ _id: req.body.id })
+            
+            if(user.status === 'ativo') {
+                user.status = 'inativo'
+                await user.save()    
+            }else {
+                user.status = 'ativo'
+                await user.save()    
+            }
+            
+            res.status(200).json({ user, mensagem: 'Status alterado com sucesso'})
+        }catch(msg) {
+            switch(typeof msg) {
+                case 'string':
+                    res.status(400).json({mensagem: msg})
+                    break
+                case 'object':
+                    res.status(400).json({mensagem: 'Id incorreto'})
+                    break
+                default: 
+                    res.status(500).json({mensagem: 'Falha interna'}) 
+            }
+        }
+    }
+
     const updateProfileUser = async (req, res) => {
         try{
             const user = await User.findOne({ _id: req.body.id })
@@ -341,6 +369,7 @@ module.exports = app => {
         listAllUsersForTypeUserAndStatus,  
         getUserByRegistrationOrName, 
         updateUser,
+        updateUserStatus,
         updateProfileUser, 
         forgotPassword,
         resetPassword      
