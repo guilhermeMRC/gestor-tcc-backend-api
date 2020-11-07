@@ -87,5 +87,11 @@ module.exports = app => {
     
     //===============Cadastro de Documentos relativos ao Curso==============================
     app.route('/documentos/cadastrar_documento')
-        .post(multer(multerConfigDocuments).single('file'),app.src.controler.documentation.saveDocuments)    
+        .all(app.src.config.passport.authenticate())
+        .post(multer(multerConfigDocuments).single('file'),app.src.controler.documentation.saveDocuments)
+    
+    //================Listando Documentos Relativos ao TCC===================================
+    app.route('/documentos/listar_todos_documentos/:page')
+        .all(app.src.config.passport.authenticate())
+        .get(app.src.controler.documentation.listAllDocumentation)
 }

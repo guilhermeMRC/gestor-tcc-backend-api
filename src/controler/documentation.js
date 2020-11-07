@@ -6,6 +6,7 @@ module.exports = app => {
     const Documentation = app.src.model.DocumentationSchema.Documentation
     const { existOrError, equalsOrError } = app.src.controler.validation
 
+    //Cadasto
     const saveDocuments = async (req, res) => {
         try {
             existOrError(req.body.title, "Título não informado")
@@ -28,8 +29,38 @@ module.exports = app => {
             res.status(200).json({newDocumentation, menssage: "Documentação cadastrada com sucesso"})
         } catch (msg) {
             res.status(400).json(msg)
-        }
+        }        
     }
-    
-    return { saveDocuments }
+
+    //Listagem
+    const listAllDocumentation = async (req, res) => {
+        try {
+            const query = Documentation.find()
+
+            let page = req.params.page    
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const documentation = await Documentation.paginate(query, options)
+            existOrError(documentation.docs, "Nenhum documento encontrado")
+            res.status(200).json(documentation)
+
+        }catch(error) {
+            if(error === "Nenhum documento encontrado") {
+                res.status(400).send(error)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }        
+        }   
+    }
+
+    return { 
+        saveDocuments,
+        listAllDocumentation
+    }
 }
