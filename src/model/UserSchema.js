@@ -65,6 +65,10 @@ module.exports = app => {
             type: Date,
             select: false,
         },
+        project: [{
+            type: app.mongoose.Schema.Types.ObjectId,
+            ref: 'Project'
+        }],
         createdAt: {
             type: Date,
             default: Date.now,

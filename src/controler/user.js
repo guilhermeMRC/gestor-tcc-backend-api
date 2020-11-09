@@ -126,6 +126,39 @@ module.exports = app => {
             }        
         }   
     }
+    
+    //filtrar todos os alunos ativos que estão sem projeto
+    const listAllStudentsNotProject = async (req, res) => {
+        try {
+            const query = User.find({userType : 'aluno'})
+                .and([{status:'ativo'}, {project: undefined}])
+                .select(
+                    "_id name registration email status userType project isCoordinator createdAt"
+                );
+
+            let page = req.params.page    
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const users = await User.paginate(query, options)
+            existOrError(users.docs, "Nenhum usuário encontrado")
+            res.status(200).json(users)
+
+        }catch(error) {
+            console.log(error)
+            if(error === "Nenhum usuário encontrado") {
+                res.status(400).send(error)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }        
+        }
+    }
+
 
     //filtrar usuário pela matrícula ou nome
     const getUserByRegistrationOrName = async (req, res) => {
@@ -366,7 +399,8 @@ module.exports = app => {
     return {
         saveUser, 
         listAllUsersForTypeUser,
-        listAllUsersForTypeUserAndStatus,  
+        listAllUsersForTypeUserAndStatus,
+        listAllStudentsNotProject,  
         getUserByRegistrationOrName, 
         updateUser,
         updateUserStatus,

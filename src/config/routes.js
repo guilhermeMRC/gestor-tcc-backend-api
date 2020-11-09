@@ -6,8 +6,9 @@ const { Mongoose } = require("mongoose")
 
 
 module.exports = app => {
-    const User = app.src.model.UserSchema.User
-    const Documentation = app.src.model.DocumentationSchema.Documentation
+    // const User = app.src.model.UserSchema.User
+    // const Documentation = app.src.model.DocumentationSchema.Documentation
+    // const Project = app.src.model.ProjectSchema.Project
 
     const multerConfigImages = app.src.config.multer.uploadImages
     const multerConfigDocuments = app.src.config.multer.uploadDocumentation
@@ -35,13 +36,11 @@ module.exports = app => {
     app.route('/usuarios/cadastrar_professor')
         .all(app.src.config.passport.authenticate())
         .post(isCoordinator(app.src.controler.user.saveUser))
-        // .get(isCoordinator(app.src.controler.user.listAllUsers))
-    
+        
     //rota para cadastrar Aluno
     app.route('/usuarios/cadastrar_aluno')
         .all(app.src.config.passport.authenticate())
         .post(isCoordinator(app.src.controler.user.saveUser))
-        // .get(isCoordinator(app.src.controler.user.listAllUsers))
 
     //rota para cadastrar Administrativo
     app.route('/usuarios/cadastrar_administrativo')
@@ -60,27 +59,37 @@ module.exports = app => {
         .all(app.src.config.passport.authenticate())
         .get(isCoordinator(app.src.controler.user.listAllUsersForTypeUserAndStatus))
 
+    //Listar todos os usuários por tipo e por matrícula ou nome
     app.route('/usuarios/listar_usuarios/:userType/:nome_ou_matricula/:page')
         .all(app.src.config.passport.authenticate())
         .get(isCoordinator(app.src.controler.user.getUserByRegistrationOrName))
+
+    //Listar todos os alunos ativos sem projetos    
+    app.route('/usuarios/listar_usuarios/aluno_sem_projeto/:page')
+        .get(app.src.controler.user.listAllStudentsNotProject)
     
     //==============rotas para Atualizar usuário==================// 
+    //Atualiza informações sensíveis de alunos
     app.route('/usuarios/todos_usuarios/atualizar_aluno')  
         .all(app.src.config.passport.authenticate())
         .patch(isCoordinator(app.src.controler.user.updateUser))
-
+    
+    //Atualiza informações sensíveis de professor
     app.route('/usuarios/todos_usuarios/atualizar_professor')  
         .all(app.src.config.passport.authenticate())
         .patch(isCoordinator(app.src.controler.user.updateUser))
     
+    //Atualiza informações sensíveis de administrativo    
     app.route('/usuarios/todos_usuarios/atualizar_administrativo')  
         .all(app.src.config.passport.authenticate())
         .patch(isCoordinator(app.src.controler.user.updateUser))
 
+    //Atualiza informações de perfil dos usuários    
     app.route('/usuarios/atualizar_perfil')
         .all(app.src.config.passport.authenticate())
         .patch(multer(multerConfigImages).single('file'), app.src.controler.user.updateProfileUser)
     
+    //Atualiza apenas o status do usuário
     app.route('/usuarios/atualizar_status')
         .all(app.src.config.passport.authenticate())
         .put(isCoordinator(app.src.controler.user.updateUserStatus))
@@ -94,4 +103,16 @@ module.exports = app => {
     app.route('/documentos/listar_todos_documentos/:page')
         .all(app.src.config.passport.authenticate())
         .get(app.src.controler.documentation.listAllDocumentation)
+
+    //================Cadastrando Projeto=================================================
+    app.route('/projeto/cadastrar_projeto')
+        .post(app.src.controler.project.saveProject)
+    
+    //================Listando Todos os Projetos==========================================    
+    app.route('/projeto/listar_todos')
+        .get(app.src.controler.project.listaAllProjects)
+
+    //================Cadastrando Tarefas do Projeto=======================================
+    app.route('/tarefas/cadastrar_tarefas')
+        .post(app.src.controler.task.saveTask)
 }
