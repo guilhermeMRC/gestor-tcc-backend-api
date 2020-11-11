@@ -12,7 +12,6 @@ module.exports = app => {
             type: String,
             required: true,
             unique: true,
-            maxlength: 12
         },
         password: {
             type: String,
@@ -50,6 +49,12 @@ module.exports = app => {
         },
         links: {
             type: [],
+        },
+        phoneNumber: {
+            type: [],
+        },
+        secundaryEmail: {
+            type: String,
         },  
         tokenJwt: {
             type: String,

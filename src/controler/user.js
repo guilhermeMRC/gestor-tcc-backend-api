@@ -48,19 +48,11 @@ module.exports = app => {
             const user = new User({
                 ...req.body
             })
-
-            // if(user.userType !== 'administrativo') {
-            //     user.profilePicture = {
-            //         nome: 'none'
-            //     }
-            // }
             
             user.password = encryptPassword(user.password)
         
             const newUser = await user.save() 
             res.status(201).json({user: newUser, resposta: "Usuário Cadastrado com sucesso"})
-        
-            
         }catch (msg) {
             return res.status(400).send(msg)
         }
@@ -131,7 +123,7 @@ module.exports = app => {
     const listAllStudentsNotProject = async (req, res) => {
         try {
             const query = User.find({userType : 'aluno'})
-                .and([{status:'ativo'}, {project: undefined}])
+                .and([{status:'ativo'}, {project: []}]) //CORRIGIR PARA PEGAR ARRAY VAZIO
                 .select(
                     "_id name registration email status userType project isCoordinator createdAt"
                 );
@@ -311,9 +303,14 @@ module.exports = app => {
     
             }
             
+            const newLinks = req.body.links.split(',')
+            const newPhoneNumber = req.body.phoneNumber.split(',')
+
             user.available = req.body.available
+            user.secundaryEmail = req.body.secundaryEmail
             user.aboutProfile = req.body.aboutProfile
-            user.links = req.body.links
+            user.links = newLinks
+            user.phoneNumber = newPhoneNumber
             
             await user.save()
             res.status(200).json({user, message: 'Perfil atualizado com sucesso'})

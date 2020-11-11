@@ -42,7 +42,7 @@ module.exports = app => {
                 isCoordinator: user.isCoordinator,
                 available: user.available,
                 iat: momentNow,
-                exp: momentNow + (60 * 60)
+                exp: momentNow + (72 * 60 * 60)
             }
             
             //criando o token
