@@ -1,7 +1,8 @@
 const { Schema } = require('mongoose');
 const { Mongoose } = require('mongoose');
 const mongoosePaginate = require('mongoose-paginate-v2');
-const moment = require('moment') 
+const { format } = require('date-fns-tz');
+
 module.exports = app => {
     const taskSchema = app.mongoose.Schema({
         title: {
@@ -22,24 +23,29 @@ module.exports = app => {
             enum: ['concluído', 'atraso', 'iniciado', 'recusado'],
             default: 'iniciado'
         },
-        inicialDate: {
-            type: Date,
-            default: moment().format(),
+        initialDate: {
+            type: String,
+            require: true
         },
-        deadline: {
-            type: Date,
+        deadLine: {
+            type: String,
             require: true      
         },
         deliveryDate: {
-            type: Date,
-            require: true       
+            type: String,     
         },
-        note: [{
+        notes: [{
             type: Object
         }],
+        finalFile: {
+            type: Object
+        },
+        link: {
+            type: String
+        },
         createdAt: {
             type: Date,
-            default: Date.now,
+            default: Date.now
         }
     })
     

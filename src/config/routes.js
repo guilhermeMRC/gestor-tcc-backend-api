@@ -60,9 +60,10 @@ module.exports = app => {
         .get(isCoordinator(app.src.controler.user.listAllUsersForTypeUserAndStatus))
 
     //Listar todos os usuários por tipo e por matrícula ou nome
-    app.route('/usuarios/listar_usuarios/:userType/:nome_ou_matricula/:page')
-        .all(app.src.config.passport.authenticate())
-        .get(isCoordinator(app.src.controler.user.getUserByRegistrationOrName))
+    app.route('/usuarios/listar_usuarios/:userType/:status/:nome_ou_matricula/:page')
+        // .all(app.src.config.passport.authenticate())
+        // .get(isCoordinator(app.src.controler.user.getUserByRegistrationOrName))
+        .get(app.src.controler.user.getUserByRegistrationOrName)
 
     //Listar todos os alunos ativos sem projetos    
     app.route('/usuarios/listar_usuarios/aluno_sem_projeto/:page')
@@ -109,7 +110,7 @@ module.exports = app => {
         .post(app.src.controler.project.saveProject)
     
     //================Listando Todos os Projetos==========================================    
-    app.route('/projeto/listar_todos')
+    app.route('/projeto/listar_todos/:page')
         .get(app.src.controler.project.listaAllProjects)
 
     //================Cadastrando Tarefas do Projeto=======================================

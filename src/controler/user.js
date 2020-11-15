@@ -162,8 +162,7 @@ module.exports = app => {
                     {registration: nameOrRegistration},
                     {name: new RegExp(nameOrRegistration, "i")}
                 ]
-            }).where('userType')
-            .equals(req.params.userType)
+            }).and([{ userType: req.params.userType }, { status: req.params.status }])
             .select(
                 "name registration email status userType isCoordinator createdAt"
             );

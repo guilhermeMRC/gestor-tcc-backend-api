@@ -77,8 +77,34 @@ module.exports = app => {
     }
 
     const listaAllProjects = async (req, res) => {
-        const projects = await Project.find().populate(['students','advisor'])
-        res.json(projects)
+        try {
+            const parameters = ['name', 'registration', 'status', 'userType']
+            const query = Project.find()
+                            .populate('students', parameters)
+                            .populate('advisor', parameters)
+                            .populate('tasks')
+              
+            let page = req.params.page    
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const projects = await Project.paginate(query, options)
+            existOrError(projects.docs, "Nenhum projeto encontrado")
+            res.status(200).json(projects)
+
+        }catch(error) {
+            
+            if(error === "Nenhum projeto encontrado") {
+                res.status(400).send(error)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }        
+        }
     }
 
     return {
