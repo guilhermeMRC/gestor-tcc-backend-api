@@ -97,18 +97,86 @@ module.exports = app => {
             existOrError(projects.docs, "Nenhum projeto encontrado")
             res.status(200).json(projects)
 
-        }catch(error) {
+        }catch(msg) {
             
-            if(error === "Nenhum projeto encontrado") {
-                res.status(400).send(error)
+            if(msg === "Nenhum projeto encontrado") {
+                res.status(400).send(msg)
             }else {
                 res.status(500).send('Erro no servidor')
             }        
         }
     }
 
+    const getProjectsForAdvisor = async (req, res) => {
+        try {
+            const parameters = ['name', 'registration', 'status', 'userType']
+            const query = Project.find({ advisor: req.body.id })
+                            .populate('students', parameters)
+                            .populate('advisor', parameters)
+                            .populate('tasks')
+              
+            let page = req.params.page    
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const projects = await Project.paginate(query, options)
+            existOrError(projects.docs, "Nenhum projeto encontrado")
+            res.status(200).json(projects)
+
+        }catch(msg) {
+            
+            if(msg === "Nenhum projeto encontrado") {
+                res.status(400).send(msg)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }        
+        }
+    }
+
+    const getProjectsForStudent = async (req, res) => {
+        try {
+            // const user = await User.findOne({_id: req.body.id})
+            // existOrError(user.project,'Não possui projeto')
+            // res.json(user) 
+            const parameters = ['name', 'registration', 'status', 'userType']
+            const query = Project.find({ students: req.body.id })
+                            .populate('students', parameters)
+                            .populate('advisor', parameters)
+                            .populate('tasks')
+              
+            let page = req.params.page    
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const projects = await Project.paginate(query, options)
+            existOrError(projects.docs, "Nenhum projeto encontrado")
+            res.status(200).json(projects)
+
+        }catch(msg) {
+            
+            if(msg === "Nenhum projeto encontrado") {
+                res.status(400).send(msg)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }        
+        }
+    }
+
+
     return {
         saveProject,
-        listaAllProjects           
+        listaAllProjects,
+        getProjectsForAdvisor,
+        getProjectsForStudent           
     }
 }

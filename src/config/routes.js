@@ -49,7 +49,7 @@ module.exports = app => {
 
     //==============rotas para Listar usuário==================//
     
-    //Listar todos os usuários por tipo de usuário [Professor, Aluno ou Administrativo]
+    //Listar todos os usuários por tipo de usuário [professor, aluno ou administrativo]
     app.route('/usuarios/todos_usuarios/:userType/:page')
         .all(app.src.config.passport.authenticate())
         .get(isCoordinator(app.src.controler.user.listAllUsersForTypeUser))
@@ -58,17 +58,22 @@ module.exports = app => {
     app.route('/usuarios/todos_usuarios/:userType/:status/:page')
         .all(app.src.config.passport.authenticate())
         .get(isCoordinator(app.src.controler.user.listAllUsersForTypeUserAndStatus))
+    
+    //Busca um usuário por nome ou por matrícula por tipo de usuário    
+    app.route('/usuarios/listar_usuarios/:userType/:nome_ou_matricula/:page')
+        .all(app.src.config.passport.authenticate())
+        .get(isCoordinator(app.src.controler.user.getAllByRegistrationOrName))
+        
 
-    //Listar todos os usuários por tipo e por matrícula ou nome
+    //Busca um usuários por matrícula ou nome através de tipo e status
     app.route('/usuarios/listar_usuarios/:userType/:status/:nome_ou_matricula/:page')
-        // .all(app.src.config.passport.authenticate())
-        // .get(isCoordinator(app.src.controler.user.getUserByRegistrationOrName))
-        .get(app.src.controler.user.getUserByRegistrationOrName)
+        .all(app.src.config.passport.authenticate())
+        .get(isCoordinator(app.src.controler.user.getUserByRegistrationOrName))
 
     //Listar todos os alunos ativos sem projetos    
     app.route('/usuarios/listar_usuarios/aluno_sem_projeto/:page')
         .get(app.src.controler.user.listAllStudentsNotProject)
-    
+
     //==============rotas para Atualizar usuário==================// 
     //Atualiza informações sensíveis de alunos
     app.route('/usuarios/todos_usuarios/atualizar_aluno')  
@@ -112,6 +117,15 @@ module.exports = app => {
     //================Listando Todos os Projetos==========================================    
     app.route('/projeto/listar_todos/:page')
         .get(app.src.controler.project.listaAllProjects)
+
+    //===============Listando os projetos por um usuário==================================    
+    //Listando os projetos buscando pelo professor orientador
+    app.route('/projeto/listar_todos/professor_projetos/:page')
+        .get(app.src.controler.project.getProjectsForAdvisor)
+    
+    //Listando os projetos buscando pelo aluno     
+    app.route('/projeto/listar_todos/aluno_projetos/:page')
+        .get(app.src.controler.project.getProjectsForStudent)
 
     //================Cadastrando Tarefas do Projeto=======================================
     app.route('/tarefas/cadastrar_tarefas')

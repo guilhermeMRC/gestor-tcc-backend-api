@@ -151,8 +151,46 @@ module.exports = app => {
         }
     }
 
+    //filtrar todos os usuários por matrícula ou nome 
+    const getAllByRegistrationOrName = async (req, res) => {
+        try {
+            const nameOrRegistration = req.params.nome_ou_matricula
+            const query = User.find({ $or: [
+                    {registration: nameOrRegistration},
+                    {name: new RegExp(nameOrRegistration, "i")}
+                ]
+            }).where('userType')
+            .equals(req.params.userType)
+            .select(
+                "name registration email status userType isCoordinator createdAt"
+            );
 
-    //filtrar usuário pela matrícula ou nome
+            let page = req.params.page    
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const users = await User.paginate(query, options)
+            existOrError(users.docs, 'Nenhum usuário encontrado')
+
+            res.status(200).json(users)
+
+        }catch(error) {
+            if(error === "Nenhum usuário encontrado") {
+                res.status(400).send(error)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }    
+        }
+        
+    }
+
+
+    //filtrar usuário pela matrícula ou nome de acordo com status
     const getUserByRegistrationOrName = async (req, res) => {
        
         try {
@@ -396,7 +434,8 @@ module.exports = app => {
         saveUser, 
         listAllUsersForTypeUser,
         listAllUsersForTypeUserAndStatus,
-        listAllStudentsNotProject,  
+        listAllStudentsNotProject,
+        getAllByRegistrationOrName,  
         getUserByRegistrationOrName, 
         updateUser,
         updateUserStatus,
