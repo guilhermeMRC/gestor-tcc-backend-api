@@ -10,7 +10,7 @@ const user = require('./user');
 
 module.exports = app => {    
     //funções de validação
-    const { existOrError, notExistsOrError, equalsOrError, isNumeric } = app.src.controler.validation
+    const { existOrError, notExistsOrError, equalsOrError, notEqualsOrError } = app.src.controler.validation
 
     //Importando os models
     const User = app.src.model.UserSchema.User
@@ -172,11 +172,72 @@ module.exports = app => {
         }
     }
 
+    //Atualizar Projetos
+    const UpdateProject = async (req, res) => {
+        try {
+            const { id, title, description, studentOne, studentTwo, situation } = req.body
+            existOrError(id, 'Id não informado')
+            existOrError(title, 'Titulo, não informado')
+            existOrError(description, 'Descrição não informada')
+            
+            const project = await Project.findOne({_id: id}).exec()
+            project.title = title
+            project.description = description
+            project.situation = situation
+
+            if(!studentOne && !studentTwo) 
+                res.status(400).json('Um projeto precisa ter pelo menos um aluno preenchido')
+
+            if(studentOne && !studentTwo) {
+                await User.findByIdAndUpdate(project.students[0], { project: [] })
+                await User.findByIdAndUpdate(project.students[1], { project: [] })
+
+                project.students = studentOne
+                await project.save()
+
+                await User.findByIdAndUpdate(studentOne, { project: id })
+                
+                res.status(200).json({project, Mensage: 'Projeto Atualizado com sucesso!'})
+            }
+
+            if(!studentOne && studentTwo) {
+                await User.findByIdAndUpdate(project.students[0], { project: [] })
+                await User.findByIdAndUpdate(project.students[1], { project: [] })
+
+                project.students = studentTwo
+                await project.save()
+
+                await User.findByIdAndUpdate(studentTwo, { project: id })
+                
+                res.status(200).json({project, Mensage: 'Projeto Atualizado com sucesso!'})
+            }
+
+            if(studentOne && studentTwo) {
+                notEqualsOrError(studentOne, studentTwo, 'Não podem ser iguais')
+
+                await User.findByIdAndUpdate(project.students[0], { project: [] })
+                await User.findByIdAndUpdate(project.students[1], { project: [] })
+
+                project.students = [studentOne, studentTwo] 
+                await project.save()
+
+                await User.findByIdAndUpdate(studentOne, { project: id })
+                await User.findByIdAndUpdate(studentTwo, { project: id })
+                
+                res.status(200).json({project, Mensage: 'Projeto Atualizado com sucesso!'})
+
+            } 
+            
+        } catch (msg) {
+            res.status(400).json(msg)
+        }
+    }
 
     return {
         saveProject,
         listaAllProjects,
         getProjectsForAdvisor,
-        getProjectsForStudent           
+        getProjectsForStudent,
+        UpdateProject           
     }
 }

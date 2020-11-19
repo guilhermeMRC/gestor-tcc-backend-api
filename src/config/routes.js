@@ -127,6 +127,11 @@ module.exports = app => {
     app.route('/projeto/listar_todos/aluno_projetos/:page')
         .get(app.src.controler.project.getProjectsForStudent)
 
+    //==================Atualizando Projetos=============================================
+    app.route('/projeto/atualizar_projeto')
+        .patch(app.src.controler.project.UpdateProject)
+
+
     //================Cadastrando Tarefas do Projeto=======================================
     app.route('/tarefas/cadastrar_tarefas')
         .post(app.src.controler.task.saveTask)
