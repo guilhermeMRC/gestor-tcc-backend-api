@@ -34,11 +34,12 @@ module.exports = app => {
         deliveryDate: {
             type: String,     
         },
-        notes: [{
+        comments: [{
             type: Object
         }],
         finalFile: {
-            type: Object
+            type: Object,
+            default: {}
         },
         link: {
             type: String

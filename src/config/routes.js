@@ -12,6 +12,7 @@ module.exports = app => {
 
     const multerConfigImages = app.src.config.multer.uploadImages
     const multerConfigDocuments = app.src.config.multer.uploadDocumentation
+    const multerconfigTaskDocuments = app.src.config.multer.uploadTaskDocumentation
 
     const routerDefault = async (req, res) => {
         res.status(200).send("Serviço funcionando")
@@ -116,7 +117,10 @@ module.exports = app => {
     
     //================Listando Todos os Projetos==========================================    
     app.route('/projeto/listar_todos/:page')
-        .get(app.src.controler.project.listaAllProjects)
+        .get(app.src.controler.project.listAllProjects)
+
+    app.route('/projeto/listar_todos/titulo/:title/:page')
+        .get(app.src.controler.project.listAllProjectsForTitle)
 
     //===============Listando os projetos por um usuário==================================    
     //Listando os projetos buscando pelo professor orientador
@@ -129,10 +133,24 @@ module.exports = app => {
 
     //==================Atualizando Projetos=============================================
     app.route('/projeto/atualizar_projeto')
-        .patch(app.src.controler.project.UpdateProject)
+        .patch(app.src.controler.project.updateProject)
 
+    app.route('/projeto/deletar_projeto')
+        .delete(app.src.controler.project.deleteProject)
 
     //================Cadastrando Tarefas do Projeto=======================================
     app.route('/tarefas/cadastrar_tarefas')
         .post(app.src.controler.task.saveTask)
+    
+    //================Atualizar Tarefa do Projeto==========================================
+    app.route('/tarefas/atualizar_tarefa/professor')
+        .patch(app.src.controler.task.updateTaskAdvisor)
+
+    app.route('/tarefas/atualizar_tarefa/aluno')
+        .patch(
+            multer(multerconfigTaskDocuments).single('file'), 
+            app.src.controler.task.updateTaskStudent
+        )
+
+
 }

@@ -4,15 +4,15 @@ const { use } = require('passport')
 const mongoosePaginate = require('mongoose-paginate-v2');
 
 const { parseISO } = require('date-fns');
-const { format } = require('date-fns-tz');
-const project = require('./project');
-// const aws = require('aws-sdk')
+const { format, zonedTimeToUtc } = require('date-fns-tz');
 
-// const s3 = new aws.S3()
+const aws = require('aws-sdk')
+
+const s3 = new aws.S3()
 
 module.exports = app => {    
     //funções de validação
-    const { existOrError, notExistsOrError, equalsOrError, isNumeric } = app.src.controler.validation
+    const { existOrError, equalsOrError, compDate } = app.src.controler.validation
 
     //Importando os models
     const User = app.src.model.UserSchema.User
@@ -41,19 +41,96 @@ module.exports = app => {
             findProject.tasks.push(task._id)
             await findProject.save()
             
-
-            res.json(task)
+            res.status(200).json({task, Mensage: 'Tarefa Cadastrada com Sucesso'})
         } catch (msg) {
             console.log(msg)
             res.json('deu erro')    
         }    
     }
 
-    const listaAllProjects = async (req, res) => {
-        
+    const updateTaskAdvisor = async (req, res) => {
+        try {
+            const {id, title, description, situation, initialDate, deadLine} = req.body
+
+            existOrError(id, 'Id da tarefa não informado')
+            existOrError(title, 'Título não informado')
+            existOrError(description, 'Descrição não informada')
+            existOrError(initialDate, 'Data inicial, não informada')
+            existOrError(deadLine, 'Data de prazo, não informado')
+
+            const task = await Task.findOne({_id: id}).exec()
+            
+            task.title = title
+            task.description = description
+            task.initialDate = initialDate
+            task.deadLine = deadLine
+            task.situation = situation
+            
+            await task.save()
+            res.status(200).json({task, Mensage: 'Tarefa atualizada com sucesso'}) 
+        } catch (msg) {
+            res.status(400).json(msg)
+        } 
+    }
+
+    const updateTaskStudent = async (req, res) => {
+        try {
+            const {id, link} = req.body
+            existOrError(id, 'Id do projeto não informado')
+            
+            const task = await Task.findOne({_id: id}).exec()
+            if(req.file) {
+                const {originalname: nameDocument, size, key, location: url = "" } = req.file 
+                //checa se o objeto está vazio se ele estiver vazio
+                //ele vai até o buket e apaga o documento antigo antes de salvar a nova
+                const count = Object.entries(task.finalFile).length
+                if(count !== 0) {
+                    s3.deleteObject({
+                        Bucket: process.env.AWS_STORAGE_TASK_DOCUMENT,
+                        Key: task.finalFile.key   
+                    }).promise()
+                }
+                
+                const codDocument = key.split("-")
+                const document = {
+                    cod: codDocument[0],
+                    nameDocument,
+                    size,
+                    key,
+                    url,
+                    createdAt: new Date()
+                }
+                task.finalFile = document
+            }
+
+            //pega a data atual e converte para um string
+            const date = new Date()
+            const znDate = zonedTimeToUtc(date, 'America/Sao_Paulo');
+            const strDate = format(znDate, 'dd/MM/yyyy', {
+                timeZone: 'America/Sao_Paulo',
+            })
+
+            task.link = link
+            task.deliveryDate = strDate
+            
+            if(compDate(task.deliveryDate, task.deadLine) === true) {
+                task.situation = 'atraso'
+            }else {
+                task.situation = 'concluído'
+            }
+
+            await task.save()
+
+            res.status(200).json({task, Mensage: 'Tarefa alterada com sucesso'})
+        } catch (msg) {
+            console.log(msg)
+            res.status(400).json('Deu ruim')
+        }
     }
 
     return {
-        saveTask           
+        saveTask,
+        updateTaskAdvisor,
+        updateTaskStudent           
     }
 }

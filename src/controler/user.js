@@ -62,6 +62,7 @@ module.exports = app => {
     const listAllUsersForTypeUser = async (req, res) => {
         try {
             const query = User.find({userType : req.params.userType})
+                .sort({name:'asc'})
                 .select(
                     "name registration email status userType isCoordinator createdAt"
                 );
@@ -93,6 +94,7 @@ module.exports = app => {
             const query = User.find({userType : req.params.userType})
                 .where('status')
                 .equals(req.params.status)
+                .sort({name:'asc'})
                 .select(
                     "name registration email status userType isCoordinator createdAt"
                 );
@@ -123,7 +125,8 @@ module.exports = app => {
     const listAllStudentsNotProject = async (req, res) => {
         try {
             const query = User.find({userType : 'aluno'})
-                .and([{status:'ativo'}, {project: []}]) //CORRIGIR PARA PEGAR ARRAY VAZIO
+                .and([{status:'ativo'}, {project: []}])
+                .sort({name:'asc'}) 
                 .select(
                     "_id name registration email status userType project isCoordinator createdAt"
                 );

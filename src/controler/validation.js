@@ -22,11 +22,35 @@ module.exports = app => {
         if(valueA === valueB) throw msg
     }
 
-    //checa se uma string é apenas número
     function isNumeric(str) {
         var er = /^[0-9]+$/;
         return (er.test(str));
     }
-    return { existOrError, notExistsOrError, equalsOrError, isNumeric, notEqualsOrError }
+
+    function dateParse(value) {
+        const dateNumber = Date.parse(`${value[1]}/${value[0]}/${value[2]}`)
+        return dateNumber
+    }
+
+    function compDate(value1, value2) {
+        const dateArray1 = value1.split('/')
+        const dateArray2 = value2.split('/')
+        const dateNumber1 = dateParse(dateArray1)
+        const dateNumber2 = dateParse(dateArray2)
+        if(dateNumber1 > dateNumber2) {
+            return true
+        }else {
+            return false
+        }
+    }
+    
+    return { 
+        existOrError, 
+        notExistsOrError, 
+        equalsOrError, 
+        isNumeric, 
+        notEqualsOrError,
+        compDate 
+    }
 }
 

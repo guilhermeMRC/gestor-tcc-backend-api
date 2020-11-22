@@ -48,6 +48,21 @@ const storageTypes = {
                 cb(null, filename)
             })
         },
+    }),
+    s3TaskDocumetation: multerS3({
+        s3: new aws.S3(),
+        bucket: process.env.AWS_STORAGE_TASK_DOCUMENT,
+        contentType: multerS3.AUTO_CONTENT_TYPE,
+        acl: 'public-read',
+        key: (req, file, cb) => {
+            crypto.randomBytes(16, (err, hash) => {
+                if(err) cb(err)
+
+                const filename = `${hash.toString('hex')}-${file.originalname}`
+
+                cb(null, filename)
+            })
+        },
     })
     
 }
@@ -92,6 +107,25 @@ module.exports = app => {
             }
         }        
     }
+
+    const uploadTaskDocumentation = {
+        dest: path.resolve(__dirname, '..', '..','tmp', 'uploads_images'),
+        storage: storageTypes["s3TaskDocumetation"],
+        limits: {
+            fileSize: 2 * 1024 * 1024
+        },
+        fileFilter: (req, file, cb) => {
+            const allowedMimes = [
+                'application/pdf'
+            ]
+    
+            if(allowedMimes.includes(file.mimetype)) {
+                cb(null, true)
+            }else {
+                cb(new Error("Tipo de arquivo inválido."))    
+            }
+        }        
+    }
     
     // dest: path.resolve(__dirname, '..', '..','tmp', 'uploads_images'),
     // storage: storageTypes["s3"],
@@ -114,6 +148,7 @@ module.exports = app => {
     // }
     return {
         uploadImages,
-        uploadDocumentation
+        uploadDocumentation,
+        uploadTaskDocumentation
     }
 }
