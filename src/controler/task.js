@@ -27,6 +27,7 @@ module.exports = app => {
             existOrError(description, 'Descrição não informada')
             existOrError(initialDate, 'Data inicial não informada')
             existOrError(deadLine, 'Prazo não informado')
+            if(compDate(initialDate,deadLine)) res.status(400).json('Data inicial maior que o Prazo.')
             
             const findProject = await Project.findOne({_id: project}).exec()
 
@@ -43,8 +44,7 @@ module.exports = app => {
             
             res.status(200).json({task, Mensage: 'Tarefa Cadastrada com Sucesso'})
         } catch (msg) {
-            console.log(msg)
-            res.json('deu erro')    
+            res.status(400).json(msg)    
         }    
     }
 
@@ -77,7 +77,8 @@ module.exports = app => {
         try {
             const {id, link} = req.body
             existOrError(id, 'Id do projeto não informado')
-            
+            if(!req.file && !link) res.json('Arquivo final ou um link da tarefa devem ser informados!')
+
             const task = await Task.findOne({_id: id}).exec()
             if(req.file) {
                 const {originalname: nameDocument, size, key, location: url = "" } = req.file 

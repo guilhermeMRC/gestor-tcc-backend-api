@@ -81,6 +81,7 @@ module.exports = app => {
         try {
             const parameters = ['name', 'registration', 'status', 'userType']
             const query = Project.find()
+                            .sort({title:'asc'}) 
                             .populate('students', parameters)
                             .populate('advisor', parameters)
                             .populate('tasks')
@@ -107,6 +108,74 @@ module.exports = app => {
             }        
         }
     }
+
+    const listAllProjectsBySituation = async (req, res) => {
+        try {
+            const { situation, page } = req.params
+            const parameters = ['name', 'registration', 'status', 'userType']
+            const query = Project.find({ situation: situation })
+                            .sort({title:'asc'}) 
+                            .populate('students', parameters)
+                            .populate('advisor', parameters)
+                            .populate('tasks')
+              
+            // let paginate = page    
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const projects = await Project.paginate(query, options)
+            existOrError(projects.docs, "Nenhum projeto encontrado")
+            res.status(200).json(projects)
+
+        }catch(msg) {
+            
+            if(msg === "Nenhum projeto encontrado") {
+                res.status(400).send(msg)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }        
+        }       
+    }
+
+    const listAllProjectsBySituationAndTitle = async (req, res) => {
+        try {
+            const {situation, title, page} = req.params
+            const parameters = ['name', 'registration', 'status', 'userType']
+            const query = Project.find({title: new RegExp(title, "i")})
+                            .where('situation')
+                            .equals(situation)
+                            .sort({title:'asc'}) 
+                            .populate('students', parameters)
+                            .populate('advisor', parameters)
+                            .populate('tasks')
+              
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const projects = await Project.paginate(query, options)
+            existOrError(projects.docs, "Nenhum projeto encontrado")
+            res.status(200).json(projects)
+
+        }catch(msg) {
+            
+            if(msg === "Nenhum projeto encontrado") {
+                res.status(400).send(msg)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }        
+        }
+            
+    }    
 
     const listAllProjectsForTitle = async (req, res) => {
         try {
@@ -139,6 +208,39 @@ module.exports = app => {
             }        
         }
             
+    }
+
+    const listAllProjectsByCreatedAt = async (req, res) => {
+        try {
+            const { page } = req.params
+            const parameters = ['name', 'registration', 'status', 'userType']
+            const query = Project.find()
+                            .sort({createdAt: -1}) 
+                            .populate('students', parameters)
+                            .populate('advisor', parameters)
+                            .populate('tasks')
+              
+            // let paginate = page    
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const projects = await Project.paginate(query, options)
+            existOrError(projects.docs, "Nenhum projeto encontrado")
+            res.status(200).json(projects)
+
+        }catch(msg) {
+            
+            if(msg === "Nenhum projeto encontrado") {
+                res.status(400).send(msg)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }        
+        }              
     }
 
     const getProjectsForAdvisor = async (req, res) => {
@@ -299,6 +401,9 @@ module.exports = app => {
         saveProject,
         listAllProjects,
         listAllProjectsForTitle,
+        listAllProjectsBySituation,
+        listAllProjectsBySituationAndTitle,
+        listAllProjectsByCreatedAt,
         getProjectsForAdvisor,
         getProjectsForStudent,
         updateProject,

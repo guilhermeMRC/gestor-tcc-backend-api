@@ -103,7 +103,7 @@ module.exports = app => {
             if(allowedMimes.includes(file.mimetype)) {
                 cb(null, true)
             }else {
-                cb(new Error("Tipo de arquivo inválido."))    
+                cb(new Error("Tipo de arquivo inválido."))
             }
         }        
     }

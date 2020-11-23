@@ -1,4 +1,3 @@
-const moment = require('moment')
 const aws = require('aws-sdk')
 const s3 = new aws.S3()
 
@@ -10,6 +9,7 @@ module.exports = app => {
     const saveDocuments = async (req, res) => {
         try {
             existOrError(req.body.title, "Título não informado")
+            existOrError(req.file, 'Arquivo não carregado. Por favor insira um arquivo!')
             const {originalname: nameDocumentation, size, key, location: url = "" } = req.file 
             const codDoc = key.split("-")
             const doc = {
@@ -18,7 +18,7 @@ module.exports = app => {
                 size,
                 key,
                 url,
-                createdAt: moment().format()
+                createdAt: new Date()
             }
 
             const documentation = new Documentation()
