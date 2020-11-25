@@ -369,6 +369,43 @@ module.exports = app => {
         }
     }
 
+    const updateProjectCoordinator = async (req, res) => {
+        try {
+            //pega as info do req
+            const { id, advisor } = req.body
+
+            //valida se não esta faltando o id do projeto e nem o id do prof 
+            existOrError(id, 'Id não informado')
+            existOrError(advisor, 'Professor orientador não informado')
+            
+            //vai ao banco e busca o projeto e o usuário antigo e o novo que iremos atualizar e
+            const project = await Project.findOne({_id: id}).exec()
+            const oldUser = await User.findOne({_id: project.advisor}).exec()
+            const newUser = await User.findOne({_id: advisor}).exec()
+            
+            //checa se os usuários forem iguais não faz nada
+            if(oldUser.equals(newUser)) {
+                res.status(200).json({project, Mensage: 'Projeto atualizado com sucesso'})
+            }else{
+                //removendo o projeto do array de usuário antigo
+                oldUser.project.splice(oldUser.project.indexOf(project._id),1)
+
+                //add o projeto no array do novo usuário
+                newUser.project.push(project._id)
+
+                //add o novo professor no projeto
+                project.advisor = newUser._id
+                await project.save()
+                await oldUser.save()
+                await newUser.save()
+                res.status(200).json({project, Mensage: 'Projeto alterado com sucesso'})
+            }
+            
+        } catch (msg) {
+            res.status(400).json(msg)
+        }   
+    }
+
     const deleteProject = async (req, res) => {
         try {
         //     existOrError(req.body.id, 'Id do projeto não informado')
@@ -407,6 +444,7 @@ module.exports = app => {
         getProjectsForAdvisor,
         getProjectsForStudent,
         updateProject,
+        updateProjectCoordinator,
         deleteProject           
     }
 }

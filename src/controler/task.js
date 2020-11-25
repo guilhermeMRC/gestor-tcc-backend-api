@@ -57,6 +57,7 @@ module.exports = app => {
             existOrError(description, 'Descrição não informada')
             existOrError(initialDate, 'Data inicial, não informada')
             existOrError(deadLine, 'Data de prazo, não informado')
+            if(compDate(initialDate,deadLine)) res.status(400).json('Data inicial maior que o Prazo.')
 
             const task = await Task.findOne({_id: id}).exec()
             

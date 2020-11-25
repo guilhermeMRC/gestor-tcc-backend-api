@@ -10,9 +10,15 @@ module.exports = app => {
     // const Documentation = app.src.model.DocumentationSchema.Documentation
     // const Project = app.src.model.ProjectSchema.Project
     
-    const { multerConfigImages, multerConfigDocuments, multerconfigTaskDocuments } = app.src.config.multer
+    const { 
+            uploadImages: multerConfigImages, 
+            uploadDocumentation: multerConfigDocuments, 
+            uploadTaskDocumentation: multerconfigTaskDocuments 
+    } = app.src.config.multer
+
     const { signin } = app.src.controler.auth
     const { saveDocuments, listAllDocumentation } = app.src.controler.documentation
+    
     const {
         saveUser, 
         listAllUsersForTypeUser,
@@ -37,6 +43,7 @@ module.exports = app => {
         getProjectsForAdvisor,
         getProjectsForStudent,
         updateProject,
+        updateProjectCoordinator,
         deleteProject           
     } = app.src.controler.project
 
@@ -171,9 +178,15 @@ module.exports = app => {
         .get(getProjectsForStudent)
 
     //==================Atualizando Projetos=============================================
+    //atualiza um projeto parte do professor
     app.route('/projeto/atualizar_projeto')
         .patch(updateProject)
 
+    //atualiza um projeto parte da coordenação
+    app.route('/projeto/atualizar_projeto/coordenacao')
+        .patch(updateProjectCoordinator)
+        
+    //==================Deletar Projeto==================================================
     app.route('/projeto/deletar_projeto')
         .delete(deleteProject)
 
@@ -188,5 +201,18 @@ module.exports = app => {
     app.route('/tarefas/atualizar_tarefa/aluno')
         .patch(multer(multerconfigTaskDocuments).single('file'), updateTaskStudent)
 
+    app.route('/tarefas/atualizar_tarefa/criar_comentario')
+        .patch(async(req, res) => {
+            res.status(200).json('criar um comentario')
+        })
+    
+    app.route('/tarefas/atualizar_tarefa/atualizar_comentario')
+        .patch(async(req, res) => {
+            res.status(200).json('atualizar um comentario')
+        })
 
+    app.route('/tarefas/atualizar_tarefa/deletar_comentario')
+        .patch(async(req, res) => {
+            res.status(200).json('deletar um comentario')
+        })
 }
