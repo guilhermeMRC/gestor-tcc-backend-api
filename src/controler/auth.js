@@ -67,9 +67,7 @@ module.exports = app => {
     
         }catch(msg) {
             return res.status(400).json(msg)
-        }
-        
-        
+        }  
     }
 
     function validateToken(tokenJWT) {

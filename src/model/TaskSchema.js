@@ -35,7 +35,8 @@ module.exports = app => {
             type: String,     
         },
         comments: [{
-            type: Object
+            type: app.mongoose.Schema.Types.ObjectId,
+            ref: 'Comment'
         }],
         finalFile: {
             type: Object,

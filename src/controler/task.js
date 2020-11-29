@@ -1,6 +1,5 @@
 const { json } = require('express')
 const { use } = require('passport')
-
 const mongoosePaginate = require('mongoose-paginate-v2');
 
 const { parseISO } = require('date-fns');
@@ -12,7 +11,7 @@ const s3 = new aws.S3()
 
 module.exports = app => {    
     //funções de validação
-    const { existOrError, equalsOrError, compDate } = app.src.controler.validation
+    const { existOrError, equalsOrError, notEqualsOrError,compDate } = app.src.controler.validation
 
     //Importando os models
     const User = app.src.model.UserSchema.User
@@ -104,8 +103,6 @@ module.exports = app => {
                 }
                 task.finalFile = document
             }
-
-            //pega a data atual e converte para um string
             const date = new Date()
             const znDate = zonedTimeToUtc(date, 'America/Sao_Paulo');
             const strDate = format(znDate, 'dd/MM/yyyy', {
@@ -122,17 +119,17 @@ module.exports = app => {
             }
 
             await task.save()
-
             res.status(200).json({task, Mensage: 'Tarefa alterada com sucesso'})
         } catch (msg) {
-            console.log(msg)
-            res.status(400).json('Deu ruim')
+            res.status(400).json(msg)
         }
     }
+
+    
 
     return {
         saveTask,
         updateTaskAdvisor,
-        updateTaskStudent           
+        updateTaskStudent,           
     }
 }

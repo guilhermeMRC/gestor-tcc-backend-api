@@ -47,7 +47,17 @@ module.exports = app => {
         deleteProject           
     } = app.src.controler.project
 
-    const { saveTask, updateTaskAdvisor, updateTaskStudent } = app.src.controler.task
+    const { 
+        saveTask, 
+        updateTaskAdvisor, 
+        updateTaskStudent,
+    } = app.src.controler.task
+
+    const {
+        createComment,
+        updateComment,
+        deleteComment 
+    } = app.src.controler.comment
 
     const routerDefault = async (req, res) => {
         res.status(200).send("Serviço funcionando")
@@ -170,11 +180,11 @@ module.exports = app => {
            
     //===============Listando os projetos por um usuário==================================    
     //Listando os projetos buscando pelo professor orientador
-    app.route('/projeto/listar_todos/professor_projetos/:page')
+    app.route('/projeto/professor_projetos/:page')
         .get(getProjectsForAdvisor)
     
     //Listando os projetos buscando pelo aluno     
-    app.route('/projeto/listar_todos/aluno_projetos/:page')
+    app.route('/projeto/aluno_projetos/:page')
         .get(getProjectsForStudent)
 
     //==================Atualizando Projetos=============================================
@@ -201,18 +211,12 @@ module.exports = app => {
     app.route('/tarefas/atualizar_tarefa/aluno')
         .patch(multer(multerconfigTaskDocuments).single('file'), updateTaskStudent)
 
-    app.route('/tarefas/atualizar_tarefa/criar_comentario')
-        .patch(async(req, res) => {
-            res.status(200).json('criar um comentario')
-        })
+    app.route('/comentario/criar_comentario')
+        .post(createComment)
     
-    app.route('/tarefas/atualizar_tarefa/atualizar_comentario')
-        .patch(async(req, res) => {
-            res.status(200).json('atualizar um comentario')
-        })
+    app.route('/comentario/atualizar_comentario')
+        .patch(updateComment)
 
-    app.route('/tarefas/atualizar_tarefa/deletar_comentario')
-        .patch(async(req, res) => {
-            res.status(200).json('deletar um comentario')
-        })
+    app.route('/comentario/deletar_comentario')
+        .delete(deleteComment)
 }

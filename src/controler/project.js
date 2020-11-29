@@ -79,12 +79,21 @@ module.exports = app => {
 
     const listAllProjects = async (req, res) => {
         try {
-            const parameters = ['name', 'registration', 'status', 'userType']
+            const parameters = ['_id', 'name', 'registration', 'status', 'userType', 'profilePicture']
             const query = Project.find()
                             .sort({title:'asc'}) 
                             .populate('students', parameters)
                             .populate('advisor', parameters)
-                            .populate('tasks')
+                            .populate(
+                                {
+                                    path: 'tasks', 
+                                    populate: {
+                                        path: 'comments', 
+                                        populate: {
+                                            path: 'commentUser', select: parameters
+                                        }
+                                    }
+                                })
               
             let page = req.params.page    
             const options = {
@@ -117,7 +126,16 @@ module.exports = app => {
                             .sort({title:'asc'}) 
                             .populate('students', parameters)
                             .populate('advisor', parameters)
-                            .populate('tasks')
+                            .populate(
+                                {
+                                    path: 'tasks', 
+                                    populate: {
+                                        path: 'comments', 
+                                        populate: {
+                                            path: 'commentUser', select: parameters
+                                        }
+                                    }
+                                })
               
             // let paginate = page    
             const options = {
@@ -152,7 +170,16 @@ module.exports = app => {
                             .sort({title:'asc'}) 
                             .populate('students', parameters)
                             .populate('advisor', parameters)
-                            .populate('tasks')
+                            .populate(
+                                {
+                                    path: 'tasks', 
+                                    populate: {
+                                        path: 'comments', 
+                                        populate: {
+                                            path: 'commentUser', select: parameters
+                                        }
+                                    }
+                                })
               
             const options = {
                 page: page,
@@ -184,7 +211,16 @@ module.exports = app => {
             const query = Project.find({title: new RegExp(paramtitle, "i")})
                             .populate('students', parameters)
                             .populate('advisor', parameters)
-                            .populate('tasks')
+                            .populate(
+                                {
+                                    path: 'tasks', 
+                                    populate: {
+                                        path: 'comments', 
+                                        populate: {
+                                            path: 'commentUser', select: parameters
+                                        }
+                                    }
+                                })
               
             let page = req.params.page    
             const options = {
@@ -218,7 +254,16 @@ module.exports = app => {
                             .sort({createdAt: -1}) 
                             .populate('students', parameters)
                             .populate('advisor', parameters)
-                            .populate('tasks')
+                            .populate(
+                                {
+                                    path: 'tasks', 
+                                    populate: {
+                                        path: 'comments', 
+                                        populate: {
+                                            path: 'commentUser', select: parameters
+                                        }
+                                    }
+                                })
               
             // let paginate = page    
             const options = {
@@ -249,7 +294,16 @@ module.exports = app => {
             const query = Project.find({ advisor: req.body.id })
                             .populate('students', parameters)
                             .populate('advisor', parameters)
-                            .populate('tasks')
+                            .populate(
+                                {
+                                    path: 'tasks', 
+                                    populate: {
+                                        path: 'comments', 
+                                        populate: {
+                                            path: 'commentUser', select: parameters
+                                        }
+                                    }
+                                })
               
             let page = req.params.page    
             const options = {
@@ -283,7 +337,16 @@ module.exports = app => {
             const query = Project.find({ students: req.body.id })
                             .populate('students', parameters)
                             .populate('advisor', parameters)
-                            .populate('tasks')
+                            .populate(
+                                {
+                                    path: 'tasks', 
+                                    populate: {
+                                        path: 'comments', 
+                                        populate: {
+                                            path: 'commentUser', select: parameters
+                                        }
+                                    }
+                                })
               
             let page = req.params.page    
             const options = {
