@@ -72,13 +72,18 @@ module.exports = app => {
             const comment = await Comment.findOne({_id: commentId}).exec()
             const task = await Task.findOne({_id: taskId}).exec()
 
-            //valida se o comentário é o mesmo que está na tarefa
+            //busca os comentário de uma tarefa
             const objectComment = task.comments.find(item => {
-                const strItemId = `${item._id}`
-                equalsOrError(strItemId, commentId, 'Comentário não pertence a essa tarefa')    
+                const strItem = `${item._id}`
+                return strItem === commentId
             })
 
-            //valida se o usuário tem permisão para deletar apenas o comentário dele
+            // valida se o comentário é o mesmo que está na tarefa
+            if(!objectComment) {
+                return res.status(200).json('Comentário não pertence a essa tarefa ou não existe')
+            }
+
+            // valida se o usuário tem permisão para deletar apenas o comentário dele
             const strUserComment = `${comment.commentUser}`
             equalsOrError(strUserComment, userId, 'Usuário não tem permissão para alterar esse comentário')
 
@@ -89,6 +94,7 @@ module.exports = app => {
 
             res.status(200).json({task, Mensage: 'Comentário deletado com sucesso'})
         } catch (msg) {
+            console.log(msg)
             res.status(400).json(msg)
         }
     }    
