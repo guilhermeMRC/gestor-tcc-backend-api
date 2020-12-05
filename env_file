@@ -13,6 +13,9 @@ APP_URL=http://localhost:3000
 
 DATABASE_STRING=mongodb://admin:iff12345@gestor-tcc-db-shard-00-01.94abg.mongodb.net:27017/gestor-tcc-db?authSource=admin&readPreference=primary&appname=MongoDB%20Compass%20Community&ssl=true
 
+//mais certa, porém falta ainda testes
+DATABASE_STRING=mongodb://admin:iff12345@gestor-tcc-db-shard-00-01.94abg.mongodb.net:27017/gestor-tcc-db?authSource=admin&replicaSet=gestor-tcc-db-shard-00-00.94abg.mongodb.net,gestor-tcc-db-shard-00-02.94abg.mongodb.net&readPreference=primaryPreferred&appname=MongoDB%20Compass%20Community&ssl=true
+
 DATABASE_STRING_LOCAL=mongodb://localhost/gestor-tcc-db
 
 AUTH_SECRET='awewdaiondhasiu@@$!1548A789aE@'

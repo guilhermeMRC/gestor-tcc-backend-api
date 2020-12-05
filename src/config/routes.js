@@ -180,11 +180,11 @@ module.exports = app => {
            
     //===============Listando os projetos por um usuário==================================    
     //Listando os projetos buscando pelo professor orientador
-    app.route('/projeto/professor_projetos/:page')
+    app.route('/projeto/professor_projetos/:id/:page')
         .get(getProjectsForAdvisor)
     
     //Listando os projetos buscando pelo aluno     
-    app.route('/projeto/aluno_projetos/:page')
+    app.route('/projeto/aluno_projetos/:id/:page')
         .get(getProjectsForStudent)
 
     //==================Atualizando Projetos=============================================

@@ -290,8 +290,9 @@ module.exports = app => {
 
     const getProjectsForAdvisor = async (req, res) => {
         try {
+            const {id, page} = req.params
             const parameters = ['name', 'registration', 'status', 'userType']
-            const query = Project.find({ advisor: req.body.id })
+            const query = Project.find({ advisor: id })
                             .populate('students', parameters)
                             .populate('advisor', parameters)
                             .populate(
@@ -304,8 +305,7 @@ module.exports = app => {
                                         }
                                     }
                                 })
-              
-            let page = req.params.page    
+                 
             const options = {
                 page: page,
                 limit: 10,
@@ -330,11 +330,9 @@ module.exports = app => {
 
     const getProjectsForStudent = async (req, res) => {
         try {
-            // const user = await User.findOne({_id: req.body.id})
-            // existOrError(user.project,'Não possui projeto')
-            // res.json(user) 
+            const {id, page} = req.params
             const parameters = ['name', 'registration', 'status', 'userType']
-            const query = Project.find({ students: req.body.id })
+            const query = Project.find({ students: id })
                             .populate('students', parameters)
                             .populate('advisor', parameters)
                             .populate(
@@ -348,7 +346,6 @@ module.exports = app => {
                                     }
                                 })
               
-            let page = req.params.page    
             const options = {
                 page: page,
                 limit: 10,
