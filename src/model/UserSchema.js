@@ -36,7 +36,13 @@ module.exports = app => {
         },
         profilePicture: {
             type: Object,
-            default: {}
+            default: {
+                cod: '',
+                namePicture: '',
+                size: 0,
+                key: '',
+                url: '',
+            }
         },
         aboutProfile: {
             type: String, //ver se é o suficiente
@@ -55,6 +61,7 @@ module.exports = app => {
         },
         secundaryEmail: {
             type: String,
+            default: ''
         },  
         tokenJwt: {
             type: String,

@@ -371,7 +371,8 @@ module.exports = app => {
     //Atualizar Projetos
     const updateProject = async (req, res) => {
         try {
-            const { id, title, description, studentOne, studentTwo, situation } = req.body
+            const id = req.params.id
+            const { title, description, studentOne, studentTwo, situation } = req.body
             existOrError(id, 'Id não informado')
             existOrError(title, 'Titulo, não informado')
             existOrError(description, 'Descrição não informada')

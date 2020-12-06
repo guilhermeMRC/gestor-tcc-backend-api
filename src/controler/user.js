@@ -232,6 +232,22 @@ module.exports = app => {
         
     }
 
+    const getProfileUserInfo = async (req, res) => {
+        try {
+            const parameters = [
+                '_id', 'name', 'registration', 'profilePicture', 
+                'secundaryEmail', 'aboutProfile', 'available', 
+                'links', 'phoneNumber'
+            ]
+            const user = await User.findOne({_id: req.params.id})
+                .select(parameters)
+            existOrError(user, 'Usuário não encontrado')
+            res.status(200).json(user)
+        } catch (msg) { 
+            res.status(400).json(msg)
+        }
+    }
+
     const updateUser = async (req, res) => {
         try { 
             
@@ -314,16 +330,13 @@ module.exports = app => {
 
     const updateProfileUser = async (req, res) => {
         try{
-            const user = await User.findOne({ _id: req.body.id })
-            
+            const user = await User.findOne({ _id: req.params.id })
             if(req.file) {
-                
                 const {originalname: namePicture, size, key, location: url = "" } = req.file 
-                //checa se o objeto está vazio se ele estiver vazio
-                //ele vai até o buket e apaga a foto antiga antes de salvar a nova
-                const count = Object.entries(user.profilePicture).length
-                
-                if(count !== 0) {
+                // //checa se o objeto está vazio se ele estiver vazio
+                // //ele vai até o buket e apaga a foto antiga antes de salvar a nova
+                // const count = Object.entries(user.profilePicture).length
+                if(user.profilePicture.key !== '') {
                     s3.deleteObject({
                         Bucket: process.env.AWS_STORAGE_IMAGE,
                         Key: user.profilePicture.key   
@@ -337,12 +350,10 @@ module.exports = app => {
                     size,
                     key,
                     url,
-                    createdAt: moment().format()
                 }
                 user.profilePicture = picture
-    
             }
-            
+
             const newLinks = req.body.links.split(',')
             const newPhoneNumber = req.body.phoneNumber.split(',')
 
@@ -439,7 +450,8 @@ module.exports = app => {
         listAllUsersForTypeUserAndStatus,
         listAllStudentsNotProject,
         getAllByRegistrationOrName,  
-        getUserByRegistrationOrName, 
+        getUserByRegistrationOrName,
+        getProfileUserInfo, 
         updateUser,
         updateUserStatus,
         updateProfileUser, 

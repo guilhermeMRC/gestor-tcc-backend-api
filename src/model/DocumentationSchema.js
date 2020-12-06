@@ -10,11 +10,12 @@ module.exports = app => {
             required: true
         },
         documentIformation: {
-            type: Object
+            type: Object,
+            required: true
         },
         createdAt: {
             type: Date,
-            default: moment().format()
+            default: Date.now
         }
     })
     

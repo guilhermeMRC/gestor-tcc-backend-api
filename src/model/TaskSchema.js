@@ -40,7 +40,13 @@ module.exports = app => {
         }],
         finalFile: {
             type: Object,
-            default: {}
+            default: {
+                cod: '',
+                nameDocument: '',
+                size: 0,
+                key: '',
+                url: '',
+            }
         },
         link: {
             type: String

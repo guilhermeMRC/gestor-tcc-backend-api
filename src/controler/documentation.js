@@ -18,7 +18,6 @@ module.exports = app => {
                 size,
                 key,
                 url,
-                createdAt: new Date()
             }
 
             const documentation = new Documentation()

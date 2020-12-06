@@ -37,13 +37,14 @@ module.exports = app => {
     
     const updateComment = async(req, res) => {
         try {
-            const {commentId, userId, updateComment} = req.body
+            const id = req.params.id
+            const { userId, updateComment } = req.body
 
-            existOrError(commentId, 'Id do comentário não informado')
+            existOrError(id, 'Id do comentário não informado')
             existOrError(userId, 'Id do usuário não informado')
             existOrError(updateComment, 'Não é possível salvar um comentário vazio')
 
-            const comment = await Comment.findOne({_id: commentId}).exec()
+            const comment = await Comment.findOne({_id: id}).exec()
             // const user = await User.findOne({_id: userId}).exec()
 
             const strUserComment = `${comment.commentUser}`
@@ -60,22 +61,22 @@ module.exports = app => {
     
     const deleteComment = async(req, res) => {
         try {
-            //pegando os itens do body
-            const {commentId, taskId, userId} = req.body
+            const id = req.params.id
+            const { taskId, userId } = req.body
 
             //validar campos
-            existOrError(commentId, 'Id do comentário não informado')
+            existOrError(id, 'Id do comentário não informado')
             existOrError(taskId, 'Id da tarefa não informado')
             existOrError(userId, 'Id do usuário não informado')
 
             //buscando no banco
-            const comment = await Comment.findOne({_id: commentId}).exec()
+            const comment = await Comment.findOne({_id: id}).exec()
             const task = await Task.findOne({_id: taskId}).exec()
 
             //busca os comentário de uma tarefa
             const objectComment = task.comments.find(item => {
                 const strItem = `${item._id}`
-                return strItem === commentId
+                return strItem === id
             })
 
             // valida se o comentário é o mesmo que está na tarefa

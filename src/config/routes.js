@@ -25,7 +25,8 @@ module.exports = app => {
         listAllUsersForTypeUserAndStatus,
         listAllStudentsNotProject,
         getAllByRegistrationOrName,  
-        getUserByRegistrationOrName, 
+        getUserByRegistrationOrName,
+        getProfileUserInfo, 
         updateUser,
         updateUserStatus,
         updateProfileUser, 
@@ -80,8 +81,9 @@ module.exports = app => {
     
     //rota para cadastrar professor
     app.route('/usuarios/cadastrar_professor')
-        .all(app.src.config.passport.authenticate())
-        .post(isCoordinator(saveUser))
+        // .all(app.src.config.passport.authenticate())
+        // .post(isCoordinator(saveUser))
+        .post(saveUser)
         
     //rota para cadastrar Aluno
     app.route('/usuarios/cadastrar_aluno')
@@ -118,6 +120,10 @@ module.exports = app => {
     app.route('/usuarios/listar_usuarios/aluno_sem_projeto/:page')
         .get(listAllStudentsNotProject)
 
+    //Listar informções de Perfil do Usuário
+    app.route('/usuarios/perfil/:id')
+        .get(getProfileUserInfo)
+
     //==============rotas para Atualizar usuário==================// 
     //Atualiza informações sensíveis de alunos
     app.route('/usuarios/todos_usuarios/atualizar_aluno')  
@@ -135,7 +141,7 @@ module.exports = app => {
         .patch(isCoordinator(updateUser))
 
     //Atualiza informações de perfil dos usuários    
-    app.route('/usuarios/atualizar_perfil')
+    app.route('/usuarios/atualizar_perfil/:id')
         .all(app.src.config.passport.authenticate())
         .patch(multer(multerConfigImages).single('file'), updateProfileUser)
     
@@ -189,7 +195,7 @@ module.exports = app => {
 
     //==================Atualizando Projetos=============================================
     //atualiza um projeto parte do professor
-    app.route('/projeto/atualizar_projeto')
+    app.route('/projeto/atualizar_projeto/:id')
         .patch(updateProject)
 
     //atualiza um projeto parte da coordenação
@@ -214,9 +220,9 @@ module.exports = app => {
     app.route('/comentario/criar_comentario')
         .post(createComment)
     
-    app.route('/comentario/atualizar_comentario')
+    app.route('/comentario/atualizar_comentario/:id')
         .patch(updateComment)
 
-    app.route('/comentario/deletar_comentario')
+    app.route('/comentario/deletar_comentario/:id')
         .delete(deleteComment)
 }

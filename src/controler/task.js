@@ -26,7 +26,9 @@ module.exports = app => {
             existOrError(description, 'Descrição não informada')
             existOrError(initialDate, 'Data inicial não informada')
             existOrError(deadLine, 'Prazo não informado')
-            if(compDate(initialDate,deadLine)) res.status(400).json('Data inicial maior que o Prazo.')
+            if(compDate(initialDate,deadLine)) {
+                return res.status(400).json('Data inicial maior que o Prazo.')
+            } 
             
             const findProject = await Project.findOne({_id: project}).exec()
 
@@ -84,8 +86,8 @@ module.exports = app => {
                 const {originalname: nameDocument, size, key, location: url = "" } = req.file 
                 //checa se o objeto está vazio se ele estiver vazio
                 //ele vai até o buket e apaga o documento antigo antes de salvar a nova
-                const count = Object.entries(task.finalFile).length
-                if(count !== 0) {
+                // const count = Object.entries(task.finalFile).length
+                if(task.finalFile.key !== '') {
                     s3.deleteObject({
                         Bucket: process.env.AWS_STORAGE_TASK_DOCUMENT,
                         Key: task.finalFile.key   
@@ -99,7 +101,6 @@ module.exports = app => {
                     size,
                     key,
                     url,
-                    createdAt: new Date()
                 }
                 task.finalFile = document
             }
