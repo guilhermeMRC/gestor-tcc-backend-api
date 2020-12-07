@@ -52,6 +52,7 @@ module.exports = app => {
         saveTask, 
         updateTaskAdvisor, 
         updateTaskStudent,
+        deleteTask
     } = app.src.controler.task
 
     const {
@@ -217,6 +218,11 @@ module.exports = app => {
     app.route('/tarefas/atualizar_tarefa/aluno')
         .patch(multer(multerconfigTaskDocuments).single('file'), updateTaskStudent)
 
+    //=================Deletar Tarefa do Projeto============================================
+    app. route('/tarefa/deletar_tarefa/:id')
+        .delete(deleteTask)
+
+    //=================Criar Comentário====================================================
     app.route('/comentario/criar_comentario')
         .post(createComment)
     
