@@ -81,9 +81,9 @@ module.exports = app => {
     
     //rota para cadastrar professor
     app.route('/usuarios/cadastrar_professor')
-        // .all(app.src.config.passport.authenticate())
-        // .post(isCoordinator(saveUser))
-        .post(saveUser)
+        .all(app.src.config.passport.authenticate())
+        .post(isCoordinator(saveUser))
+        // .post(saveUser)
         
     //rota para cadastrar Aluno
     app.route('/usuarios/cadastrar_aluno')
@@ -199,7 +199,7 @@ module.exports = app => {
         .patch(updateProject)
 
     //atualiza um projeto parte da coordenação
-    app.route('/projeto/atualizar_projeto/coordenacao')
+    app.route('/projeto/coordenacao/atualizar/:id')
         .patch(updateProjectCoordinator)
         
     //==================Deletar Projeto==================================================

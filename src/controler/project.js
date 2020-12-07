@@ -21,27 +21,54 @@ module.exports = app => {
     const saveProject = async (req, res) => {
         const { title, description, studentOne, studentTwo, advisor } = req.body
         try {
+            //validações de campo
             existOrError(title, 'Título não informado.')
             existOrError(description, 'Descrição não informada.')
-            existOrError(studentOne, 'Pelo menos um aluno deve ser informado.')
             existOrError(advisor, 'Usuário deve estar logado.')
             
+            //checa se os dois campos de estudantes estão vazios
+            if(!studentOne && !studentTwo) {
+                return res.status(400).json('Pelo menos um aluno deve ser informado.')
+            }    
+
             //vai checar no banco se o professor está ou não disponivel
             const teachear = await User.findOne({_id: advisor}).exec()
-            
             if(teachear.available !== 'sim') {
                 return res.status(400).json('Professor deve estar disponivel para cadastrar um projeto! Por favor altere sua disponibilidade para sim')
             }
 
+            //se tudo está nos conformes ele começa a cria o projeto
             const project = new Project()
             project.title = title
             project.description = description
             project.advisor = advisor
 
-            if(!studentTwo) {
+            //checa qual dos alunos está preenchido e segue o o código
+            //se o primeiro não está, mas o segundo está
+            if(!studentOne && studentTwo) {
+                project.students = [studentTwo]
+                const studentB = await User.findOne({_id: studentTwo}).exec()
+                if(studentB.project[0]) {
+                    return res.status(400).json('Aluno faz parte de outro projeto. Não é possível cadastrar-lo.')
+                }
+                const newProject = await project.save()
+    
+                teachear.project.push(newProject._id)
+                studentB.project = newProject._id
+    
+                await teachear.save()
+                await studentB.save()
+    
+                res.status(200).json({user: newProject, resposta: "Projeto Cadastrado com sucesso"})                
+            }
+
+            if(studentOne && !studentTwo) {
                 project.students = [studentOne]
                 const studentA = await User.findOne({_id: studentOne}).exec()
-
+                if(studentA.project[0]) {
+                    return res.status(400).json('Aluno faz parte de outro projeto. Não é possível cadastrar-lo.')
+                }
+    
                 const newProject = await project.save()
 
                 teachear.project.push(newProject._id)
@@ -51,24 +78,29 @@ module.exports = app => {
                 await studentA.save()
 
                 res.status(200).json({user: newProject, resposta: "Projeto Cadastrado com sucesso"})
-
-            }else {
+            }
+            
+            //Se os dois campos estiverem preenchidos
+            if(studentOne && studentTwo) {
+                notEqualsOrError(studentOne,studentTwo,'Não é possível cadastrar dois alunos com mesmo id')
                 project.students = [studentOne, studentTwo]
             
                 const studentA = await User.findOne({_id: studentOne}).exec()
                 const studentB = await User.findOne({_id: studentTwo}).exec()
-
+                if(studentA.project[0] || studentB.project[0]) {
+                    return res.status(400).json('Aluno faz parte de outro projeto. Não é possível cadastrar-lo.')
+                }
                 const newProject = await project.save()
-
+    
                 teachear.project.push(newProject._id)
                 studentA.project = newProject._id
                 studentB.project = newProject._id
-
+    
                 await teachear.save()
                 await studentA.save()
                 await studentB.save()
-
-                res.status(200).json({user: newProject, resposta: "Projeto Cadastrado com sucesso"})
+    
+                res.status(200).json({user: newProject, resposta: "Projeto Cadastrado com sucesso"})  
             }
                        
         }catch (msg) {
@@ -433,7 +465,8 @@ module.exports = app => {
     const updateProjectCoordinator = async (req, res) => {
         try {
             //pega as info do req
-            const { id, advisor } = req.body
+            const id = req.params.id
+            const { advisor } = req.body
 
             //valida se não esta faltando o id do projeto e nem o id do prof 
             existOrError(id, 'Id não informado')
@@ -446,7 +479,7 @@ module.exports = app => {
             
             //checa se os usuários forem iguais não faz nada
             if(oldUser.equals(newUser)) {
-                res.status(200).json({project, Mensage: 'Projeto atualizado com sucesso'})
+                return res.status(200).json({project, Mensage: 'Projeto atualizado com sucesso'})
             }else{
                 //removendo o projeto do array de usuário antigo
                 oldUser.project.splice(oldUser.project.indexOf(project._id),1)
