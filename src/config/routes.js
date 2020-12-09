@@ -204,7 +204,7 @@ module.exports = app => {
         .patch(updateProjectCoordinator)
         
     //==================Deletar Projeto==================================================
-    app.route('/projeto/deletar_projeto')
+    app.route('/projeto/deletar_projeto/:id')
         .delete(deleteProject)
 
     //================Cadastrando Tarefas do Projeto=======================================
