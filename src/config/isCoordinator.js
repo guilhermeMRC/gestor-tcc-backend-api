@@ -3,7 +3,7 @@ module.exports = middleware => {
         if(req.user.isCoordinator || req.user.userType === 'administrativo') {
             middleware(req, res, next)
         }else {
-            res.status(401).send('Usuário não é Coordenador ou Administrador.')
+            res.status(401).send('Usuário não é Coordenador ou Administrativo.')
         }
     }
 }

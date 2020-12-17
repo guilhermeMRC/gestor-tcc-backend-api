@@ -42,11 +42,11 @@ const storageTypes = {
         key: (req, file, cb) => {
             crypto.randomBytes(16, (err, hash) => {
                 if(err) cb(err)
-
+        
                 const filename = `${hash.toString('hex')}-${file.originalname}`
-
+        
                 cb(null, filename)
-            })
+            })         
         },
     }),
     s3TaskDocumetation: multerS3({
