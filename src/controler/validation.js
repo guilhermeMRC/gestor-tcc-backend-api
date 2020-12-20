@@ -1,3 +1,6 @@
+const aws = require('aws-sdk')
+const s3 = new aws.S3()
+
 module.exports = app => {
     function existOrError(value, msg) {
         if(!value) throw msg
@@ -27,21 +30,36 @@ module.exports = app => {
         return (er.test(str));
     }
 
-    function dateParse(value) {
+    function stringDateParse(value) {
         const dateNumber = Date.parse(`${value[1]}/${value[0]}/${value[2]}`)
         return dateNumber
+    }
+
+    function stringDateFormatCorrect(value) {
+        const dateArray = value.split('/')
+        const stringDate = `${dateArray[1]}/${dateArray[0]}/${dateArray[2]}`
+        return stringDate
     }
 
     function compDate(value1, value2) {
         const dateArray1 = value1.split('/')
         const dateArray2 = value2.split('/')
-        const dateNumber1 = dateParse(dateArray1)
-        const dateNumber2 = dateParse(dateArray2)
+        const dateNumber1 = stringDateParse(dateArray1)
+        const dateNumber2 = stringDateParse(dateArray2)
         if(dateNumber1 > dateNumber2) {
             return true
         }else {
             return false
         }
+    }
+
+    function deleteS3(req) {
+        if(req.file) {
+            s3.deleteObject({
+                Bucket: process.env.AWS_STORAGE_TASK_DOCUMENT,
+                Key: req.file.key  
+            }).promise()
+        }    
     }
     
     return { 
@@ -50,7 +68,9 @@ module.exports = app => {
         equalsOrError, 
         isNumeric, 
         notEqualsOrError,
-        compDate 
+        stringDateFormatCorrect,
+        compDate,
+        deleteS3 
     }
 }
 

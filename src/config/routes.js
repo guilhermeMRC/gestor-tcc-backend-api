@@ -29,6 +29,7 @@ module.exports = app => {
         listAllUsersForTypeUser,
         listAllUsersForTypeUserAndStatus,
         listAllStudentsNotProject,
+        listAllProfileTeacher,
         getAllByRegistrationOrName,  
         getUserByRegistrationOrName,
         getProfileUserInfo, 
@@ -111,7 +112,7 @@ module.exports = app => {
     app.route('/usuarios/todos_usuarios/:userType/:status/:page')
         .all(app.src.config.passport.authenticate())
         .get(isCoordinator(listAllUsersForTypeUserAndStatus))
-    
+
     //Busca um usuário por nome ou por matrícula por tipo de usuário    
     app.route('/usuarios/listar_usuarios/:userType/:nome_ou_matricula/:page')
         .all(app.src.config.passport.authenticate())
@@ -130,6 +131,10 @@ module.exports = app => {
     app.route('/usuarios/perfil/:id')
         .get(getProfileUserInfo)
 
+    //Listar o perfil de todos os professores
+    app.route('/usuarios/professores_perfil/:page')
+        .get(listAllProfileTeacher)
+        
     //==============rotas para Atualizar usuário==================// 
     //Atualiza informações sensíveis de alunos
     app.route('/usuarios/todos_usuarios/atualizar_aluno')  
@@ -227,11 +232,12 @@ module.exports = app => {
         .post(saveTask)
     
     //================Atualizar Tarefa do Projeto==========================================
-    app.route('/tarefas/atualizar_tarefa/professor')
+    app.route('/tarefas/atualizar_tarefa/professor/:id')
         .patch(updateTaskAdvisor)
 
-    app.route('/tarefas/atualizar_tarefa/aluno')
-        .patch(multer(multerconfigTaskDocuments).single('file'), updateTaskStudent)
+    app.route('/tarefas/atualizar_tarefa/aluno/:id')
+        // .all(app.src.config.passport.authenticate())
+        .patch(multer(multerconfigTaskDocuments).single('file'),updateTaskStudent)
 
     //=================Deletar Tarefa do Projeto============================================
     app. route('/tarefa/deletar_tarefa/:id')

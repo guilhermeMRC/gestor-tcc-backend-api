@@ -13,26 +13,26 @@ module.exports = app => {
             type: String,
             require: true
         },
-        // project: {
-        //     type: app.mongoose.Schema.Types.ObjectId,
-        //     ref: 'Project',
-        //     require: true
-        // },
+        project: {
+            type: app.mongoose.Schema.Types.ObjectId,
+            ref: 'Project',
+            require: true
+        },
         situation: {
             type: String,
             enum: ['concluído', 'atraso', 'iniciado', 'recusado'],
             default: 'iniciado'
         },
         initialDate: {
-            type: String,
+            type: Date,
             require: true
         },
         deadLine: {
-            type: String,
+            type: Date,
             require: true      
         },
         deliveryDate: {
-            type: String,     
+            type: Date,     
         },
         comments: [{
             type: app.mongoose.Schema.Types.ObjectId,

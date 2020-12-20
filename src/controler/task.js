@@ -2,7 +2,7 @@ const { json } = require('express')
 const { use } = require('passport')
 const mongoosePaginate = require('mongoose-paginate-v2');
 
-const { parseISO } = require('date-fns');
+const { parseISO, isAfter } = require('date-fns');
 const { format, zonedTimeToUtc } = require('date-fns-tz');
 
 const aws = require('aws-sdk')
@@ -11,7 +11,14 @@ const s3 = new aws.S3()
 
 module.exports = app => {    
     //funções de validação
-    const { existOrError, equalsOrError, notEqualsOrError,compDate } = app.src.controler.validation
+    const { 
+        existOrError, 
+        equalsOrError, 
+        notEqualsOrError,
+        stringDateFormatCorrect,
+        compDate, 
+        deleteS3 
+    } = app.src.controler.validation
 
     //Importando os models
     const User = app.src.model.UserSchema.User
@@ -21,24 +28,34 @@ module.exports = app => {
 
     //Salvar usuário
     const saveTask = async (req, res) => {
-        const {title, description, deadLine, initialDate, project } = req.body
+        const {title, description, deadLine, initialDate, projectId, userId } = req.body
         try {
             existOrError(title, 'Título não informado')
             existOrError(description, 'Descrição não informada')
             existOrError(initialDate, 'Data inicial não informada')
             existOrError(deadLine, 'Prazo não informado')
+            existOrError(projectId, 'Id do projeto não informado')
+            existOrError(userId, 'Id do usuário não informado')
+            
             if(compDate(initialDate,deadLine)) {
                 return res.status(400).json('Data inicial maior que o Prazo.')
             } 
             
-            const findProject = await Project.findOne({_id: project}).exec()
+            const findProject = await Project.findOne({_id: projectId}).exec()
+            existOrError(findProject, 'Id do projeto incorreto ou não existe')
+
+            equalsOrError(`${findProject.advisor}`,userId, 'Usuário não tem permissão para cadastrar uma tarefa')
+
+            const newInitialDate = new Date(stringDateFormatCorrect(initialDate))
+            const newDeadLine = new Date(stringDateFormatCorrect(deadLine))
 
             const newTask = new Task()
             newTask.title = title
             newTask.description = description
-            newTask.initialDate = initialDate
-            newTask.deadLine = deadLine
-            
+            newTask.initialDate = newInitialDate
+            newTask.deadLine = newDeadLine
+            newTask.project = projectId
+
             const task = await newTask.save()
 
             findProject.tasks.push(task._id)
@@ -52,21 +69,35 @@ module.exports = app => {
 
     const updateTaskAdvisor = async (req, res) => {
         try {
-            const {id, title, description, situation, initialDate, deadLine} = req.body
-
-            existOrError(id, 'Id da tarefa não informado')
+            const id = req.params.id
+            const {title, description, situation, initialDate, deadLine, projectId, userId} = req.body
             existOrError(title, 'Título não informado')
             existOrError(description, 'Descrição não informada')
             existOrError(initialDate, 'Data inicial, não informada')
             existOrError(deadLine, 'Data de prazo, não informado')
-            if(compDate(initialDate,deadLine)) res.status(400).json('Data inicial maior que o Prazo.')
+            existOrError(situation, 'Situação deve ser informada')
+            existOrError(projectId, 'Id do projeto não informado')
+            existOrError(userId, 'Id do professor Orientador não informado')
+            
+            if(compDate(initialDate,deadLine)){
+                return res.status(400).json('Data inicial maior que o Prazo.')
+            } 
 
             const task = await Task.findOne({_id: id}).exec()
+            existOrError(task, 'Id da tarefa incorreto ou não existe')
+
+            const project = await Project.findOne({_id: projectId})
+            existOrError(project, 'Id do projeto incorreto ou não existe')
+            equalsOrError(`${task.project}`, projectId, 'Tarefa não pertence ao projeto informado')
+            equalsOrError(`${project.advisor}`, userId, 'Usuário não tem permissão para alterar essa tarefa')
             
+            const newInitialDate = new Date(stringDateFormatCorrect(initialDate))
+            const newDeadLine = new Date(stringDateFormatCorrect(deadLine))
+
             task.title = title
             task.description = description
-            task.initialDate = initialDate
-            task.deadLine = deadLine
+            task.initialDate = newInitialDate
+            task.deadLine = newDeadLine
             task.situation = situation
             
             await task.save()
@@ -78,16 +109,54 @@ module.exports = app => {
 
     const updateTaskStudent = async (req, res) => {
         try {
-            const {id, link} = req.body
-            existOrError(id, 'Id do projeto não informado')
-            if(!req.file && !link) res.json('Arquivo final ou um link da tarefa devem ser informados!')
+            const id = req.params.id
+            const { link, projectId, userId } = req.body
+            const {originalname: nameDocument, size, key, location: url = "" } = req.file 
+
+            if(!projectId) {
+                deleteS3(req)
+                return res.status(400).json('Id do projeto não informado') 
+            }
+            
+            if(!userId) {
+                deleteS3(req)
+                return res.status(400).json('Id do usuário não informado') 
+            }
+            
+            if(!req.file && !link) {
+                return res.status(400).json('Arquivo final ou um link da tarefa devem ser informados!')
+            } 
 
             const task = await Task.findOne({_id: id}).exec()
+            if(!task) {
+                deleteS3(req)
+                return res.status(400).json('Id da tarefa incorreto ou não existente')     
+            }
+            
+            const project = await Project.findOne({_id: projectId})
+            if(!project) {
+                deleteS3(req)
+                return res.status(400).json('Id do projeto incorreto ou não existe')     
+            }
+
+            if(`${task.project}` !== projectId) {
+                deleteS3(req)
+                return res.status(400).json('Tarefa não pertence ao projeto informado')       
+            }
+            
+            let compUser = false
+            project.students.forEach(item => {
+                if(`${item}` === userId) {
+                    return compUser = true
+                }
+            })
+            if(compUser === false) {
+                deleteS3(req)
+                return res.status(400).json('Usuário não tem permissão para alterar essa tarefa')    
+            }
+
             if(req.file) {
-                const {originalname: nameDocument, size, key, location: url = "" } = req.file 
-                //checa se o objeto está vazio se ele estiver vazio
-                //ele vai até o buket e apaga o documento antigo antes de salvar a nova
-                // const count = Object.entries(task.finalFile).length
+                
                 if(task.finalFile.key !== '') {
                     s3.deleteObject({
                         Bucket: process.env.AWS_STORAGE_TASK_DOCUMENT,
@@ -105,21 +174,16 @@ module.exports = app => {
                 }
                 task.finalFile = document
             }
-            const date = new Date()
-            const znDate = zonedTimeToUtc(date, 'America/Sao_Paulo');
-            const strDate = format(znDate, 'dd/MM/yyyy', {
-                timeZone: 'America/Sao_Paulo',
-            })
-
+        
             task.link = link
-            task.deliveryDate = strDate
+            task.deliveryDate = new Date()
             
-            if(compDate(task.deliveryDate, task.deadLine) === true) {
-                task.situation = 'atraso'
+            if(isAfter(task.deliveryDate, task.deadLine)) {
+                task.situation = 'atraso'    
             }else {
-                task.situation = 'concluído'
+                task.situation = 'concluído'   
             }
-
+            
             await task.save()
             res.status(200).json({task, Mensage: 'Tarefa alterada com sucesso'})
         } catch (msg) {
@@ -137,25 +201,18 @@ module.exports = app => {
             existOrError(projectId, 'Id do projeto não informado')
             existOrError(userId, 'Id do usuário não informado')
 
+            //validando se aquela tarefa pertence mesmo ao projeto
+            //vai ao banco e traz a tarefa que será apagada
+            const deleteTask = await Task.findOne({_id: id})
+            existOrError(deleteTask, 'Id da tarefa incorreto ou não existente')
+            equalsOrError(`${deleteTask.project}`, projectId, 'Tarefa não pertence ao projeto informado')
+            
             //buscando no banco de dados o projeto
             const project = await Project.findOne({_id: projectId})
-            
-            //validando se aquela tarefa pertence mesmo ao projeto
-            const objectTask = project.tasks.find(item => {
-                const strItem = `${item._id}`
-                return strItem === id
-            })
-            if(!objectTask) {
-                return res.status(400).json('Tarefa não pertence a esse projeto ou não existe')
-            }
-            
+            existOrError(project,'Id do projeto incorreto ou não existe')
             //checa se o usuário tem permisão para apagar essa tarefa
             equalsOrError(`${project.advisor}`,userId, 'Usuário não tem permisão para deletar essa tarefa')
 
-            //Se ele passou daqui é hora de apagar
-            //vai ao banco e traz a tarefa que será apagada
-            const deleteTask = await Task.findOne({_id: id}) 
-            
             //checa se tem algum arquivo vinculado no s3, se tiver será apagado
             if(deleteTask.finalFile.key !== '') {
                 s3.deleteObject({
@@ -180,21 +237,8 @@ module.exports = app => {
             res.status(200).json({Mensage: 'Tarefa Deletada com sucesso!'})
             
         } catch (msg) {
-            console.log(msg)
             res.status(400).json(msg)  
         }
-        //ter o id do projeto para poder buscar quem são os envolvidos 
-        //e comparar com o id do usuário para barrar caso não tenha permissão
-
-        //pegar o id da tarefa que desejo deletar
-
-        //pegar a tarefa no banco para poder pegar os comentários e deletalos
-
-        //ver ser tem arquivo e deletar no s3
-
-        //apagar a tarefa no projeto 
-
-        //apagar a tarefa de fato
     }
 
     return {
