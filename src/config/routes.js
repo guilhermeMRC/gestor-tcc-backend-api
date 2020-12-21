@@ -49,6 +49,7 @@ module.exports = app => {
         listAllProjectsByCreatedAt,
         getProjectsForAdvisor,
         getProjectsForStudent,
+        getProjectById,
         updateProject,
         updateProjectCoordinator,
         deleteProject           
@@ -58,7 +59,8 @@ module.exports = app => {
         saveTask, 
         updateTaskAdvisor, 
         updateTaskStudent,
-        deleteTask
+        deleteTask,
+        listAllTasksByProject
     } = app.src.controler.task
 
     const {
@@ -214,6 +216,10 @@ module.exports = app => {
     app.route('/projeto/aluno_projetos/:id/:page')
         .get(getProjectsForStudent)
 
+    //Buscando um projeto por Id
+    app.route('/projeto/:id')
+        .get(getProjectById) 
+        
     //==================Atualizando Projetos=============================================
     //atualiza um projeto parte do professor
     app.route('/projeto/atualizar_projeto/:id')
@@ -240,9 +246,13 @@ module.exports = app => {
         .patch(multer(multerconfigTaskDocuments).single('file'),updateTaskStudent)
 
     //=================Deletar Tarefa do Projeto============================================
-    app. route('/tarefa/deletar_tarefa/:id')
+    app.route('/tarefa/deletar_tarefa/:id')
         .delete(deleteTask)
 
+    //Listar todas as tarefas de um projeto
+    app.route('/tarefa/projeto_tarefas/:id/:page')
+        .get(listAllTasksByProject)
+        
     //=================Criar Comentário====================================================
     app.route('/comentario/criar_comentario')
         .post(createComment)

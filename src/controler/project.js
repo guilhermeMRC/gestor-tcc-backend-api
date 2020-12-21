@@ -399,6 +399,45 @@ module.exports = app => {
         }
     }
 
+    const getProjectById = async (req, res) => {
+        try {
+            const {id, page} = req.params
+            const parameters = ['name', 'registration', 'status', 'userType']
+            const query = Project.findOne({ _id: id })
+                            .populate('students', parameters)
+                            .populate('advisor', parameters)
+                            .populate(
+                                {
+                                    path: 'tasks', 
+                                    populate: {
+                                        path: 'comments', 
+                                        populate: {
+                                            path: 'commentUser', select: parameters
+                                        }
+                                    }
+                                })
+              
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const projects = await Project.paginate(query, options)
+            existOrError(projects.docs, "Nenhum projeto encontrado")
+            res.status(200).json(projects)
+    
+        } catch (msg) {
+            if(msg === "Nenhum projeto encontrado") {
+                res.status(400).send(msg)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }      
+        }
+    }
+
     //Atualizar Projetos
     const updateProject = async (req, res) => {
         try {
@@ -575,6 +614,7 @@ module.exports = app => {
         listAllProjectsByCreatedAt,
         getProjectsForAdvisor,
         getProjectsForStudent,
+        getProjectById,
         updateProject,
         updateProjectCoordinator,
         deleteProject           

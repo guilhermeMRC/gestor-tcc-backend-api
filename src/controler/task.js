@@ -241,10 +241,42 @@ module.exports = app => {
         }
     }
 
+    const listAllTasksByProject = async (req, res) => {
+        try {
+            const {id, page} = req.params
+            const parameters = ['name', 'registration', 'status', 'userType']
+            const query = Task.find({project: id})
+                            .sort({deadLine: 1}) 
+                            .populate(
+                                {
+                                    path: 'comments', 
+                                    populate: {
+                                        path: 'commentUser', select: parameters
+                                    }
+                                })
+              
+            // let paginate = page    
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const tasks = await Task.paginate(query, options)
+            existOrError(tasks.docs, "Nenhuma tarefa encontrada")
+            res.status(200).json(tasks)    
+        } catch (msg) {
+            res.status(400).json(msg)      
+        }
+    }
+
     return {
         saveTask,
         updateTaskAdvisor,
         updateTaskStudent,
-        deleteTask           
+        deleteTask,
+        listAllTasksByProject,           
     }
 }
