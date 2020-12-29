@@ -32,11 +32,11 @@ consign()
     .then('./src/controler/comment.js')
     .then('./src/controler/auth.js')
     .then('./src/config/passport.js')
-    .then('./src/config/routes.js')
+    .then('./src/config/routes')
     .into(app)
 
 //=====================Produção================================    
-//Descomentar quando estiver pronto para Produção    
+// Descomentar quando estiver pronto para Produção    
 app.listen(process.env.PORT || 3000, () => {
     console.log('Server running!')
 })
