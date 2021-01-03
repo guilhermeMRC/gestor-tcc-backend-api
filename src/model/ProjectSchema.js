@@ -25,6 +25,10 @@ module.exports = app => {
             type: app.mongoose.Schema.Types.ObjectId,
             ref: 'Task'
         }],
+        orientation: [{
+            type: app.mongoose.Schema.Types.ObjectId,
+            ref: 'Orientation'
+        }],
         situation: {
             type: String,
             enum: ['concluído', 'pré-tcc', 'tcc1', 'tcc2'],

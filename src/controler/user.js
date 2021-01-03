@@ -368,12 +368,18 @@ module.exports = app => {
 
     const updateProfileUser = async (req, res) => {
         try{
+            const idUser = `${req.user._id}`
+            equalsOrError(idUser, req.params.id, 'Usuário não tem permissão para alterar esse perfil')
+            const {
+                facebook, linkedin, youtube, instagram,
+                lattes, primaryNumber, secondNumber, available,
+                secundaryEmail, aboutProfile
+            } = req.body
             const user = await User.findOne({ _id: req.params.id })
             if(req.file) {
                 const {originalname: namePicture, size, key, location: url = "" } = req.file 
                 // //checa se o objeto está vazio se ele estiver vazio
                 // //ele vai até o buket e apaga a foto antiga antes de salvar a nova
-                // const count = Object.entries(user.profilePicture).length
                 if(user.profilePicture.key !== '') {
                     s3.deleteObject({
                         Bucket: process.env.AWS_STORAGE_IMAGE,
@@ -392,12 +398,21 @@ module.exports = app => {
                 user.profilePicture = picture
             }
 
-            const newLinks = req.body.links.split(',')
-            const newPhoneNumber = req.body.phoneNumber.split(',')
+            const newLinks = {
+                facebook: facebook,
+                linkedin: linkedin,
+                youtube: youtube,
+                instagram: instagram,
+                lattes: lattes,
+            }
+            const newPhoneNumber = {
+                primaryNumber: primaryNumber,
+                secondNumber: secondNumber
+            }
 
-            user.available = req.body.available
-            user.secundaryEmail = req.body.secundaryEmail
-            user.aboutProfile = req.body.aboutProfile
+            user.available = available
+            user.secundaryEmail = secundaryEmail
+            user.aboutProfile = aboutProfile
             user.links = newLinks
             user.phoneNumber = newPhoneNumber
             

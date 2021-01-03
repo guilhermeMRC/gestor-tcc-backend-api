@@ -54,10 +54,21 @@ module.exports = app => {
             default: 'nulo'
         },
         links: {
-            type: [],
+            type: Object,
+            default: {
+                facebook: '',
+                linkedin: '',
+                youtube: '',
+                instagram: '',
+                lattes: '',
+            }
         },
         phoneNumber: {
-            type: [],
+            type: Object,
+            default: {
+                primaryNumber: '',
+                secondNumber: '',
+            }
         },
         secundaryEmail: {
             type: String,
@@ -81,6 +92,10 @@ module.exports = app => {
             type: app.mongoose.Schema.Types.ObjectId,
             ref: 'Project'
         }],
+        // orientation: [{
+        //     type: app.mongoose.Schema.Types.ObjectId,
+        //     ref: 'Orientation'
+        // }],
         createdAt: {
             type: Date,
             default: Date.now,
