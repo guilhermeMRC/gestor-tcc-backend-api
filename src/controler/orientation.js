@@ -47,7 +47,39 @@ module.exports = app => {
         }
     }
 
+    const updateOrientation = async (req, res) => {
+        try {
+            const id = req.params.id
+            const { title, description, type, dateOrientation } = req.body
+            const user = req.user    
+
+            existOrError(title, 'Título não informado')
+            existOrError(description, 'Descrição não informada')
+            existOrError(type, 'Tipo não informado')
+            existOrError(dateOrientation, 'Data da orientação não informada')
+
+            const orientation = await Orientation.findOne({_id: id})
+            existOrError(orientation, 'Orientação não existe ou id da Orientação inválido')
+
+            equalsOrError(`${user._id}`, `${orientation.advisor}`, 'Usuário não tem permissão para alterar essa orientação')
+            
+            const newDate = parse(dateOrientation, 'dd/MM/yyyy', new Date());
+            existOrError(isValid(newDate), 'Data inválida')
+
+            orientation.title = title
+            orientation.description = description
+            orientation.type = type
+            orientation.dateOrientation = dateOrientation
+
+            await orientation.save()
+            res.status(200).json({orientation, mensage: 'Orientação atualizada com sucesso'})
+        } catch (msg) {
+            res.status(400).json(msg)
+        }
+    }
+
     return {
-        saveOrientation
+        saveOrientation,
+        updateOrientation
     }
 }
