@@ -12,17 +12,19 @@ module.exports = app => {
                 projectId, dateOrientation 
             } = req.body
 
+            const user = req.user
+
             existOrError(title, 'Título não informado')
             existOrError(description, 'Descrição não informada')
             existOrError(type, 'Tipo não informado')
-            existOrError(advisorId, 'Id do professor não informado')
+            // existOrError(advisorId, 'Id do professor não informado')
             existOrError(projectId, 'Id do projeto não informado')
             existOrError(dateOrientation, 'Data da orientação não informada')
 
             const project = await Project.findOne({_id: projectId})
             existOrError(project, 'Projeto não existe ou id está incorreto')
 
-            equalsOrError(advisorId, `${project.advisor}`, 'Usuário não tem permissão para cadastrar uma orientação nesse projeto')
+            equalsOrError(`${user._id}`, `${project.advisor}`, 'Usuário não tem permissão para cadastrar uma orientação nesse projeto')
             
             //validar a data antes de salvar
             const newDate = parse(dateOrientation, 'dd/MM/yyyy', new Date());
@@ -32,7 +34,7 @@ module.exports = app => {
             orientation.title = title
             orientation.description = description
             orientation.type = type
-            orientation.advisor = advisorId
+            orientation.advisor = user
             orientation.project = projectId
             orientation.dateOrientation = newDate
 
@@ -78,8 +80,31 @@ module.exports = app => {
         }
     }
 
+    const deleteOrientation = async (req, res) => {
+        try {
+            const id = req.params.id
+            const user = req.user
+            
+            const deleteOrientation = await Orientation.findOne({_id: id})
+            existOrError(deleteOrientation, 'Orientação não existe ou id da orientação incorreto')
+            equalsOrError(`${user._id}`, `${deleteOrientation.advisor}`, 'Usuário não tem permissão para deletar a orientação')
+            
+            const project = await Project.findOne({_id: deleteOrientation.project})
+
+            project.orientation.splice(project.orientation.indexOf(deleteOrientation._id),1)
+            
+            await project.save()
+            await deleteOrientation.remove()
+
+            res.status(200).json({mensage: 'Orientação deletada com sucesso'})
+        } catch (msg) {
+            res.status(400).json(msg)
+        }
+    }
+
     return {
         saveOrientation,
-        updateOrientation
+        updateOrientation,
+        deleteOrientation,
     }
 }
