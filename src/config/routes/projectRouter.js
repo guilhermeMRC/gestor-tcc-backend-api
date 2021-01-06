@@ -64,6 +64,7 @@ module.exports = app => {
         
     //==================Deletar Projeto==================================================
     app.route('/projeto/deletar_projeto/:id')
+        .all(app.src.config.passport.authenticate())
         .delete(deleteProject)
 
 }

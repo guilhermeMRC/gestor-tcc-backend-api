@@ -15,6 +15,7 @@ module.exports = app => {
     const Project = app.src.model.ProjectSchema.Project
     const Task = app.src.model.TaskSchema.Task
     const Comment = app.src.model.CommentSchema.Comment
+    const Orientation = app.src.model.OrientationSchema.Orientation
 
     //Salvar usuário
     const saveProject = async (req, res) => {
@@ -542,16 +543,14 @@ module.exports = app => {
         try {
             //peguei as informações
             const id = req.params.id
-            const advisorId = req.body.advisorId
-            //checando se o campo de id do usuário foi preenchido
-            existOrError(advisorId, 'Id do usuário não informado')
+            const user = req.user
 
             //buscando o projeto no banco
             const deleteProject = await Project.findOne({_id: id})
             existOrError(deleteProject, 'Id do projeto incorreto ou não existe')
 
             //validando se o usuário possuí permissão para deletar
-            equalsOrError(`${deleteProject.advisor}`, advisorId, 'Usuário não tem permissão para deletar o projeto')
+            equalsOrError(`${deleteProject.advisor}`, `${user._id}`, 'Usuário não tem permissão para deletar o projeto')
 
             /*Possuí permissão agora é hora de 
              * ir apagando as coisas */
@@ -575,32 +574,31 @@ module.exports = app => {
                         itemTask.remove()
                     })
                 })
-
-                //altera o projeto para array zerado no documento do(s) aluno(s)
-                deleteProject.students.forEach(itemStudent => {
-                    User.findByIdAndUpdate(itemStudent, {project: []}).then()
-                })
-
-                //altera o projeto para array zerado no documento do professor
-                User.findByIdAndUpdate(deleteProject.advisor, {project: []}).then()
-
-                //deleta de vez o projeto
-                deleteProject.remove()
-                return res.status(200).json({Mensage: 'Projeto Deletado com sucesso!'})
-            }else {
-                
-                deleteProject.students.forEach(itemStudent => {
-                    User.findByIdAndUpdate(itemStudent, {project: []}).then()
-                })
-
-                User.findByIdAndUpdate(deleteProject.advisor, {project: []}).then()
-                
-                //deleta de vez o projeto
-                deleteProject.remove()
-                
-                return res.status(200).json({Mensage: 'Projeto Deletado com sucesso!'})
             }
+
+            //deletando as orientações
+            if(deleteProject.orientation.length !== 0){
+                deleteProject.orientation.forEach(itemOrientation => {
+                    Orientation.findByIdAndRemove({_id: itemOrientation})
+                })    
+            }
+
+            //altera o projeto para array zerado no documento do(s) aluno(s)
+            deleteProject.students.forEach(itemStudent => {
+                User.findByIdAndUpdate(itemStudent, {project: []}).then()
+            })
+
+            // //altera o projeto para array zerado no documento do professor
+            // User.findByIdAndUpdate(deleteProject.advisor, {project: []}).then()
+            user.project.splice(user.project.indexOf(deleteProject._id),1)
+            await user.save()
+
+            //deleta de vez o projeto
+            deleteProject.remove()
+            res.status(200).json({Mensage: 'Projeto Deletado com sucesso!'})
+            
         } catch (msg) { 
+            console.log(msg)
             res.status(400).json(msg)
         }
     }
