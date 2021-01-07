@@ -61,14 +61,17 @@ module.exports = app => {
 
     //Listar todos os alunos ativos sem projetos    
     app.route('/usuarios/listar_usuarios/aluno_sem_projeto/:page')
+        .all(app.src.config.passport.authenticate())
         .get(listAllStudentsNotProject)
 
     //Listar informções de Perfil do Usuário
     app.route('/usuarios/perfil/:id')
+        .all(app.src.config.passport.authenticate())
         .get(getProfileUserInfo)
 
     //Listar o perfil de todos os professores
     app.route('/usuarios/professores_perfil/:page')
+        .all(app.src.config.passport.authenticate())
         .get(listAllProfileTeacher)
         
     //==============rotas para Atualizar usuário==================// 

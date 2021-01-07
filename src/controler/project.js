@@ -417,6 +417,7 @@ module.exports = app => {
                                         }
                                     }
                                 })
+                            .populate('orientation')
               
             const options = {
                 page: page,

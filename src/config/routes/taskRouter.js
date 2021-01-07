@@ -16,22 +16,26 @@ module.exports = app => {
     
     //================Cadastrando Tarefas do Projeto=======================================
     app.route('/tarefas/cadastrar_tarefas')
+        .all(app.src.config.passport.authenticate())
         .post(saveTask)
     
     //================Atualizar Tarefa do Projeto==========================================
     app.route('/tarefas/atualizar_tarefa/professor/:id')
+        .all(app.src.config.passport.authenticate())
         .patch(updateTaskAdvisor)
 
     app.route('/tarefas/atualizar_tarefa/aluno/:id')
-        // .all(app.src.config.passport.authenticate())
+        .all(app.src.config.passport.authenticate())
         .patch(multer(multerconfigTaskDocuments).single('file'),updateTaskStudent)
 
     //=================Deletar Tarefa do Projeto============================================
     app.route('/tarefa/deletar_tarefa/:id')
+        .all(app.src.config.passport.authenticate())
         .delete(deleteTask)
 
     //Listar todas as tarefas de um projeto
     app.route('/tarefa/projeto_tarefas/:id/:page')
+        .all(app.src.config.passport.authenticate())
         .get(listAllTasksByProject)
  
 }
