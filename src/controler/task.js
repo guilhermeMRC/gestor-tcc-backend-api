@@ -29,13 +29,13 @@ module.exports = app => {
     //Salvar usuário
     const saveTask = async (req, res) => {
         const {title, description, deadLine, initialDate, projectId, userId } = req.body
+        const user = req.user
         try {
             existOrError(title, 'Título não informado')
             existOrError(description, 'Descrição não informada')
             existOrError(initialDate, 'Data inicial não informada')
             existOrError(deadLine, 'Prazo não informado')
             existOrError(projectId, 'Id do projeto não informado')
-            existOrError(userId, 'Id do usuário não informado')
             
             if(compDate(initialDate,deadLine)) {
                 return res.status(400).json('Data inicial maior que o Prazo.')
@@ -44,7 +44,7 @@ module.exports = app => {
             const findProject = await Project.findOne({_id: projectId}).exec()
             existOrError(findProject, 'Id do projeto incorreto ou não existe')
 
-            equalsOrError(`${findProject.advisor}`,userId, 'Usuário não tem permissão para cadastrar uma tarefa')
+            equalsOrError(`${findProject.advisor}`,`${user._id}`, 'Usuário não tem permissão para cadastrar uma tarefa')
 
             const newInitialDate = new Date(stringDateFormatCorrect(initialDate))
             const newDeadLine = new Date(stringDateFormatCorrect(deadLine))
@@ -70,14 +70,14 @@ module.exports = app => {
     const updateTaskAdvisor = async (req, res) => {
         try {
             const id = req.params.id
-            const {title, description, situation, initialDate, deadLine, projectId, userId} = req.body
+            const {title, description, situation, initialDate, deadLine } = req.body
+            const user = req.user
+
             existOrError(title, 'Título não informado')
             existOrError(description, 'Descrição não informada')
             existOrError(initialDate, 'Data inicial, não informada')
             existOrError(deadLine, 'Data de prazo, não informado')
             existOrError(situation, 'Situação deve ser informada')
-            existOrError(projectId, 'Id do projeto não informado')
-            existOrError(userId, 'Id do professor Orientador não informado')
             
             if(compDate(initialDate,deadLine)){
                 return res.status(400).json('Data inicial maior que o Prazo.')
@@ -86,10 +86,9 @@ module.exports = app => {
             const task = await Task.findOne({_id: id}).exec()
             existOrError(task, 'Id da tarefa incorreto ou não existe')
 
-            const project = await Project.findOne({_id: projectId})
+            const project = await Project.findOne({_id: task.project})
             existOrError(project, 'Id do projeto incorreto ou não existe')
-            equalsOrError(`${task.project}`, projectId, 'Tarefa não pertence ao projeto informado')
-            equalsOrError(`${project.advisor}`, userId, 'Usuário não tem permissão para alterar essa tarefa')
+            equalsOrError(`${project.advisor}`, `${user._id}`, 'Usuário não tem permissão para alterar essa tarefa')
             
             const newInitialDate = new Date(stringDateFormatCorrect(initialDate))
             const newDeadLine = new Date(stringDateFormatCorrect(deadLine))
@@ -110,18 +109,9 @@ module.exports = app => {
     const updateTaskStudent = async (req, res) => {
         try {
             const id = req.params.id
-            const { link, projectId, userId } = req.body
+            const { link } = req.body
             const {originalname: nameDocument, size, key, location: url = "" } = req.file 
-
-            if(!projectId) {
-                deleteS3(req)
-                return res.status(400).json('Id do projeto não informado') 
-            }
-            
-            if(!userId) {
-                deleteS3(req)
-                return res.status(400).json('Id do usuário não informado') 
-            }
+            const user = req.user
             
             if(!req.file && !link) {
                 return res.status(400).json('Arquivo final ou um link da tarefa devem ser informados!')
@@ -133,20 +123,15 @@ module.exports = app => {
                 return res.status(400).json('Id da tarefa incorreto ou não existente')     
             }
             
-            const project = await Project.findOne({_id: projectId})
+            const project = await Project.findOne({_id: task.project})
             if(!project) {
                 deleteS3(req)
                 return res.status(400).json('Id do projeto incorreto ou não existe')     
             }
-
-            if(`${task.project}` !== projectId) {
-                deleteS3(req)
-                return res.status(400).json('Tarefa não pertence ao projeto informado')       
-            }
             
             let compUser = false
             project.students.forEach(item => {
-                if(`${item}` === userId) {
+                if(`${item}` === `${user._id}`) {
                     return compUser = true
                 }
             })
@@ -195,23 +180,17 @@ module.exports = app => {
         try {
             //pegando as informações
             const id = req.params.id
-            const { projectId, userId } = req.body
-
-            //validando se o usuário preencheu as informações pertinentes
-            existOrError(projectId, 'Id do projeto não informado')
-            existOrError(userId, 'Id do usuário não informado')
-
+            const user = req.user
             //validando se aquela tarefa pertence mesmo ao projeto
             //vai ao banco e traz a tarefa que será apagada
             const deleteTask = await Task.findOne({_id: id})
             existOrError(deleteTask, 'Id da tarefa incorreto ou não existente')
-            equalsOrError(`${deleteTask.project}`, projectId, 'Tarefa não pertence ao projeto informado')
             
             //buscando no banco de dados o projeto
-            const project = await Project.findOne({_id: projectId})
-            existOrError(project,'Id do projeto incorreto ou não existe')
+            const project = await Project.findOne({_id: deleteTask.project})
+            existOrError(project, 'projeto incorreto ou não existe')
             //checa se o usuário tem permisão para apagar essa tarefa
-            equalsOrError(`${project.advisor}`,userId, 'Usuário não tem permisão para deletar essa tarefa')
+            equalsOrError(`${project.advisor}`,`${user._id}`, 'Usuário não tem permisão para deletar essa tarefa')
 
             //checa se tem algum arquivo vinculado no s3, se tiver será apagado
             if(deleteTask.finalFile.key !== '') {

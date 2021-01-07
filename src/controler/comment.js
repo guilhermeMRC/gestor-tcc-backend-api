@@ -9,44 +9,37 @@ module.exports = app => {
     const createComment = async(req, res) => {
         try {
             //pega infos do body
-            const { projectId, taskId, userId, comment } = req.body
+            const { taskId, comment } = req.body
+            const user = req.user
 
             //valida as informações
-            existOrError(projectId, 'Id do projeto não informado')
             existOrError(taskId, 'Id da Tarefa não informado')
-            existOrError(userId, 'Id do usuário não informado')
             existOrError(comment, 'Não é possível salvar um comentário vazio')
 
+            //procura no banco a tarefa a qual tenho que inserir comentário
+            const task = await Task.findOne({_id: taskId}).exec()
             //vai ao banco e busque o projeto
-            const project = await Project.findOne({_id: projectId}).exec()
+            existOrError(task, 'Tarefa não ixiste ou id está incorreto')
+            
+            const project = await Project.findOne({_id: task.project}).exec()
             //checa se ele existe mesmo
             existOrError(project, 'Projeto não existe ou está incorreto')
-            
-            //checa se a tarefa existe nesse projeto
-            const checkTask = project.tasks.find(item => {
-                return `${item}` === taskId
-            })
-            if(!checkTask) {
-                return res.status(400).json('Tarefa não pertence a esse projeto')
-            }
 
             //monta um array com os usuários do projeto e checa se eles podem criar comentários nessa tarefa
             const arrayUsers = project.students
             arrayUsers.push(project.advisor)
             const checkUser = arrayUsers.find(item => {
-                return `${item}` === userId
+                return `${item}` === `${user._id}`
             })
             if(!checkUser) {
                 return res.status(400).json('Usuário não tem permissão')
             }	
             
-            //procura no banco a tarefa a qual tenho que inserir comentário
-            const task = await Task.findOne({_id: taskId}).exec()
-            
             //crio o comentário
             const nComment = new Comment()
-            nComment.commentUser = userId
+            nComment.commentUser = user._id
             nComment.comment = comment
+            nComment.task = task._id
 
             //salvo o comentário no banco
             const newComment = await nComment.save()
@@ -56,7 +49,6 @@ module.exports = app => {
 
             res.status(200).json({newComment, Mensage: 'Comentário criado com sucesso'})      
         } catch (msg) {
-            console.log(msg)
             res.status(400).json(msg)
         }
     }
@@ -64,17 +56,15 @@ module.exports = app => {
     const updateComment = async(req, res) => {
         try {
             const id = req.params.id
-            const { userId, updateComment } = req.body
+            const { updateComment } = req.body
+            const user = req.user
 
             existOrError(id, 'Id do comentário não informado')
-            existOrError(userId, 'Id do usuário não informado')
             existOrError(updateComment, 'Não é possível salvar um comentário vazio')
 
             const comment = await Comment.findOne({_id: id}).exec()
-            // const user = await User.findOne({_id: userId}).exec()
-
-            const strUserComment = `${comment.commentUser}`
-            equalsOrError(strUserComment, userId, 'Usuário não tem permissão para alterar esse comentário')
+            
+            equalsOrError(`${comment.commentUser}`, `${user._id}`, 'Usuário não tem permissão para alterar esse comentário')
 
             comment.comment = updateComment
             await comment.save()
@@ -88,40 +78,24 @@ module.exports = app => {
     const deleteComment = async(req, res) => {
         try {
             const id = req.params.id
-            const { taskId, userId } = req.body
+            const user = req.user
 
             //validar campos
             existOrError(id, 'Id do comentário não informado')
-            existOrError(taskId, 'Id da tarefa não informado')
-            existOrError(userId, 'Id do usuário não informado')
 
             //buscando no banco
             const comment = await Comment.findOne({_id: id}).exec()
-            const task = await Task.findOne({_id: taskId}).exec()
-
-            //busca os comentário de uma tarefa
-            const objectComment = task.comments.find(item => {
-                const strItem = `${item._id}`
-                return strItem === id
-            })
-
-            // valida se o comentário é o mesmo que está na tarefa
-            if(!objectComment) {
-                return res.status(200).json('Comentário não pertence a essa tarefa ou não existe')
-            }
+            const task = await Task.findOne({_id: comment.task}).exec()
 
             // valida se o usuário tem permisão para deletar apenas o comentário dele
-            const strUserComment = `${comment.commentUser}`
-            equalsOrError(strUserComment, userId, 'Usuário não tem permissão para alterar esse comentário')
+            equalsOrError(`${comment.commentUser}`, `${user._id}`, 'Usuário não tem permissão para alterar esse comentário')
 
-            // user.project.splice(user.project.indexOf(project.advisor),1)
             task.comments.splice(task.comments.indexOf(comment._id),1)
             await task.save()
             await comment.remove()
 
-            res.status(200).json({task, Mensage: 'Comentário deletado com sucesso'})
+            res.status(200).json({Mensage: 'Comentário deletado com sucesso'})
         } catch (msg) {
-            console.log(msg)
             res.status(400).json(msg)
         }
     }    

@@ -9,6 +9,10 @@ module.exports = app => {
             type: String,
             require: true
         },
+        task: {
+            type: app.mongoose.Schema.Types.ObjectId,
+            ref: 'Task'
+        },
         createdAt: {
             type: Date,
             default: Date.now,
