@@ -1,8 +1,7 @@
 const { json } = require('express')
 const { use } = require('passport')
 const mongoosePaginate = require('mongoose-paginate-v2');
-
-const { parseISO, isAfter } = require('date-fns');
+const { isValid, parse, isAfter } = require('date-fns');
 const { format, zonedTimeToUtc } = require('date-fns-tz');
 
 const aws = require('aws-sdk')
@@ -28,7 +27,7 @@ module.exports = app => {
 
     //Salvar usuário
     const saveTask = async (req, res) => {
-        const {title, description, deadLine, initialDate, projectId, userId } = req.body
+        const {title, description, deadLine, initialDate, projectId } = req.body
         const user = req.user
         try {
             existOrError(title, 'Título não informado')
@@ -37,17 +36,19 @@ module.exports = app => {
             existOrError(deadLine, 'Prazo não informado')
             existOrError(projectId, 'Id do projeto não informado')
             
-            if(compDate(initialDate,deadLine)) {
-                return res.status(400).json('Data inicial maior que o Prazo.')
-            } 
+            const newInitialDate = parse(initialDate, 'dd/MM/yyyy', new Date());
+            const newDeadLine = parse(deadLine, 'dd/MM/yyyy', new Date()); 
+            existOrError(isValid(newInitialDate), 'Data inicial inválida')
+            existOrError(isValid(newDeadLine), 'Prazo final inválido')
+            
+            if(isAfter(newInitialDate, newDeadLine)) {
+                return res.status(400).json('Data inicial não pode ser maior que o prazo')
+            }
             
             const findProject = await Project.findOne({_id: projectId}).exec()
             existOrError(findProject, 'Id do projeto incorreto ou não existe')
 
             equalsOrError(`${findProject.advisor}`,`${user._id}`, 'Usuário não tem permissão para cadastrar uma tarefa')
-
-            const newInitialDate = new Date(stringDateFormatCorrect(initialDate))
-            const newDeadLine = new Date(stringDateFormatCorrect(deadLine))
 
             const newTask = new Task()
             newTask.title = title
@@ -79,9 +80,14 @@ module.exports = app => {
             existOrError(deadLine, 'Data de prazo, não informado')
             existOrError(situation, 'Situação deve ser informada')
             
-            if(compDate(initialDate,deadLine)){
-                return res.status(400).json('Data inicial maior que o Prazo.')
-            } 
+            const newInitialDate = parse(initialDate, 'dd/MM/yyyy', new Date());
+            const newDeadLine = parse(deadLine, 'dd/MM/yyyy', new Date()); 
+            existOrError(isValid(newInitialDate), 'Data inicial inválida')
+            existOrError(isValid(newDeadLine), 'Prazo final inválido')
+            
+            if(isAfter(newInitialDate, newDeadLine)) {
+                return res.status(400).json('Data inicial não pode ser maior que o prazo')
+            }
 
             const task = await Task.findOne({_id: id}).exec()
             existOrError(task, 'Id da tarefa incorreto ou não existe')
@@ -90,9 +96,6 @@ module.exports = app => {
             existOrError(project, 'Id do projeto incorreto ou não existe')
             equalsOrError(`${project.advisor}`, `${user._id}`, 'Usuário não tem permissão para alterar essa tarefa')
             
-            const newInitialDate = new Date(stringDateFormatCorrect(initialDate))
-            const newDeadLine = new Date(stringDateFormatCorrect(deadLine))
-
             task.title = title
             task.description = description
             task.initialDate = newInitialDate
