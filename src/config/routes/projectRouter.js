@@ -9,6 +9,7 @@ module.exports = app => {
         listAllProjectsBySituationAndTitle,
         listAllProjectsByCreatedAt,
         getProjectsForAdvisor,
+        getProjectsByAdvisorForTitle,
         getProjectsForStudent,
         getProjectById,
         updateProject,
@@ -51,6 +52,10 @@ module.exports = app => {
     app.route('/projeto/professor_projetos/:id/:page')
         .all(app.src.config.passport.authenticate())
         .get(getProjectsForAdvisor)
+
+    app.route('/projeto/professor_projetos/:id/:title/:page')
+        .all(app.src.config.passport.authenticate())
+        .get(getProjectsByAdvisorForTitle)
     
     //Listando os projetos buscando pelo aluno     
     app.route('/projeto/aluno_projetos/:id')

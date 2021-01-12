@@ -116,6 +116,7 @@ module.exports = app => {
                             .sort({title:'asc'}) 
                             .populate('students', parameters)
                             .populate('advisor', parameters)
+                            .populate('orientation')
                             .populate(
                                 {
                                     path: 'tasks', 
@@ -153,11 +154,12 @@ module.exports = app => {
     const listAllProjectsBySituation = async (req, res) => {
         try {
             const { situation, page } = req.params
-            const parameters = ['name', 'registration', 'status', 'userType']
+            const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
             const query = Project.find({ situation: situation })
                             .sort({title:'asc'}) 
                             .populate('students', parameters)
                             .populate('advisor', parameters)
+                            .populate('orientation')
                             .populate(
                                 {
                                     path: 'tasks', 
@@ -195,13 +197,14 @@ module.exports = app => {
     const listAllProjectsBySituationAndTitle = async (req, res) => {
         try {
             const {situation, title, page} = req.params
-            const parameters = ['name', 'registration', 'status', 'userType']
+            const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
             const query = Project.find({title: new RegExp(title, "i")})
                             .where('situation')
                             .equals(situation)
                             .sort({title:'asc'}) 
                             .populate('students', parameters)
                             .populate('advisor', parameters)
+                            .populate('orientation')
                             .populate(
                                 {
                                     path: 'tasks', 
@@ -238,11 +241,12 @@ module.exports = app => {
 
     const listAllProjectsForTitle = async (req, res) => {
         try {
-            const parameters = ['name', 'registration', 'status', 'userType']
+            const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
             const paramtitle = req.params.title 
             const query = Project.find({title: new RegExp(paramtitle, "i")})
                             .populate('students', parameters)
                             .populate('advisor', parameters)
+                            .populate('orientation')
                             .populate(
                                 {
                                     path: 'tasks', 
@@ -281,11 +285,12 @@ module.exports = app => {
     const listAllProjectsByCreatedAt = async (req, res) => {
         try {
             const { page } = req.params
-            const parameters = ['name', 'registration', 'status', 'userType']
+            const parameters = ['name', 'registration', 'status', 'userType','profilePicture']
             const query = Project.find()
                             .sort({createdAt: -1}) 
                             .populate('students', parameters)
                             .populate('advisor', parameters)
+                            .populate('orientation')
                             .populate(
                                 {
                                     path: 'tasks', 
@@ -323,10 +328,11 @@ module.exports = app => {
     const getProjectsForAdvisor = async (req, res) => {
         try {
             const {id, page} = req.params
-            const parameters = ['name', 'registration', 'status', 'userType']
+            const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
             const query = Project.find({ advisor: id })
                             .populate('students', parameters)
                             .populate('advisor', parameters)
+                            .populate('orientation')
                             .populate(
                                 {
                                     path: 'tasks', 
@@ -360,13 +366,56 @@ module.exports = app => {
         }
     }
 
+    const getProjectsByAdvisorForTitle = async (req, res) => {
+        try {
+            const {id, title, page} = req.params
+            const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
+            const query = Project.find({title: new RegExp(title, "i")})
+                            .where({advisor: id})
+                            .populate('students', parameters)
+                            .populate('advisor', parameters)
+                            .populate('orientation')
+                            .populate(
+                                {
+                                    path: 'tasks', 
+                                    populate: {
+                                        path: 'comments', 
+                                        populate: {
+                                            path: 'commentUser', select: parameters
+                                        }
+                                    }
+                                })
+                 
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const projects = await Project.paginate(query, options)
+            existOrError(projects.docs, "Nenhum projeto encontrado")
+            res.status(200).json(projects)
+
+        }catch(msg) {
+            
+            if(msg === "Nenhum projeto encontrado") {
+                res.status(400).send(msg)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }        
+        }
+    }
+    
     const getProjectsForStudent = async (req, res) => {
         try {
             const id = req.params.id
-            const parameters = ['name', 'registration', 'status', 'userType']
+            const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
             const query = Project.find({ students: id })
                             .populate('students', parameters)
                             .populate('advisor', parameters)
+                            .populate('orientation')
                             .populate(
                                 {
                                     path: 'tasks', 
@@ -403,10 +452,11 @@ module.exports = app => {
     const getProjectById = async (req, res) => {
         try {
             const {id, page} = req.params
-            const parameters = ['name', 'registration', 'status', 'userType']
+            const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
             const query = Project.findOne({ _id: id })
                             .populate('students', parameters)
                             .populate('advisor', parameters)
+                            .populate('orientation')
                             .populate(
                                 {
                                     path: 'tasks', 
@@ -417,8 +467,7 @@ module.exports = app => {
                                         }
                                     }
                                 })
-                            .populate('orientation')
-              
+                            
             const options = {
                 page: page,
                 limit: 10,
@@ -612,6 +661,7 @@ module.exports = app => {
         listAllProjectsBySituationAndTitle,
         listAllProjectsByCreatedAt,
         getProjectsForAdvisor,
+        getProjectsByAdvisorForTitle,
         getProjectsForStudent,
         getProjectById,
         updateProject,
