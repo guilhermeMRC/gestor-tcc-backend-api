@@ -362,7 +362,7 @@ module.exports = app => {
 
     const getProjectsForStudent = async (req, res) => {
         try {
-            const {id, page} = req.params
+            const id = req.params.id
             const parameters = ['name', 'registration', 'status', 'userType']
             const query = Project.find({ students: id })
                             .populate('students', parameters)
@@ -379,7 +379,7 @@ module.exports = app => {
                                 })
               
             const options = {
-                page: page,
+                page: 1,
                 limit: 10,
                 collation: {
                     locale: 'pt'

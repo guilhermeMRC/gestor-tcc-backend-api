@@ -11,7 +11,8 @@ module.exports = app => {
         updateTaskAdvisor, 
         updateTaskStudent,
         deleteTask,
-        listAllTasksByProject
+        listAllTasksByProject,
+        getTaskById
     } = app.src.controler.task
     
     //================Cadastrando Tarefas do Projeto=======================================
@@ -37,5 +38,10 @@ module.exports = app => {
     app.route('/tarefa/projeto_tarefas/:id/:page')
         .all(app.src.config.passport.authenticate())
         .get(listAllTasksByProject)
+    
+    //Listar tarefa buscando por Id
+    app.route('/tarefa/:id')
+        .all(app.src.config.passport.authenticate())
+        .get(getTaskById)
  
 }

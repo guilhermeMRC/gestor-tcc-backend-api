@@ -53,7 +53,7 @@ module.exports = app => {
         .get(getProjectsForAdvisor)
     
     //Listando os projetos buscando pelo aluno     
-    app.route('/projeto/aluno_projetos/:id/:page')
+    app.route('/projeto/aluno_projetos/:id')
         .all(app.src.config.passport.authenticate())
         .get(getProjectsForStudent)
 

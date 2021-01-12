@@ -236,8 +236,7 @@ module.exports = app => {
                                         path: 'commentUser', select: parameters
                                     }
                                 })
-              
-            // let paginate = page    
+               
             const options = {
                 page: page,
                 limit: 10,
@@ -254,11 +253,41 @@ module.exports = app => {
         }
     }
 
+    const getTaskById = async (req, res) => {
+        try {
+            const id = req.params.id
+            const parameters = ['name', 'registration', 'status', 'userType']
+            const query = Task.find({_id: id}) 
+                            .populate(
+                                {
+                                    path: 'comments', 
+                                    populate: {
+                                        path: 'commentUser', select: parameters
+                                    }
+                                })
+               
+            const options = {
+                page: 1,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const task = await Task.paginate(query, options)
+            existOrError(task.docs, "Nenhuma tarefa encontrada")
+            res.status(200).json(task)
+        } catch (msg) {
+            res.status(400).json(msg)
+        }
+    }
+
     return {
         saveTask,
         updateTaskAdvisor,
         updateTaskStudent,
         deleteTask,
-        listAllTasksByProject,           
+        listAllTasksByProject,
+        getTaskById           
     }
 }
