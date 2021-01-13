@@ -1,8 +1,11 @@
 const isCoordinator = require('../isCoordinator')
 module.exports = app => {
     const {
-        saveOrientation, updateOrientation, 
-        deleteOrientation, listOrientationsByProject 
+        saveOrientation, 
+        updateOrientation, 
+        deleteOrientation, 
+        listOrientationsByProject,
+        getOrientationByProjectForTitle 
     } = app.src.controler.orientation
 
     //salva uma orientação
@@ -25,4 +28,6 @@ module.exports = app => {
         .all(app.src.config.passport.authenticate())
         .get(listOrientationsByProject)
 
+    app.route('/orientacao/orientacoes_projeto/titulo/:projectId/:title/:modifier/:page')
+        .get(getOrientationByProjectForTitle)
 }

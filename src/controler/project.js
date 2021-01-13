@@ -372,6 +372,7 @@ module.exports = app => {
             const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
             const query = Project.find({title: new RegExp(title, "i")})
                             .where({advisor: id})
+                            .sort({title:'asc'}) 
                             .populate('students', parameters)
                             .populate('advisor', parameters)
                             .populate('orientation')
@@ -407,7 +408,91 @@ module.exports = app => {
             }        
         }
     }
+
+    const getProjectsByAdvisorForSituation = async (req, res) => {
+        try {
+            const {advisorId, situation, page} = req.params
+            const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
+            const query = Project.find({situation: situation})
+                .where({advisor: advisorId})
+                .sort({title:'asc'}) 
+                .populate('students', parameters)
+                .populate('advisor', parameters)
+                .populate('orientation')
+                .populate(
+                    {
+                        path: 'tasks', 
+                        populate: {
+                            path: 'comments', 
+                            populate: {
+                                path: 'commentUser', select: parameters
+                            }
+                        }
+                    })
+     
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            }
+
+            const projects = await Project.paginate(query, options)
+            existOrError(projects.docs, "Nenhum projeto encontrado")
+            res.status(200).json(projects) 
+
+        } catch (msg) {
+            if(msg === "Nenhum projeto encontrado") {
+                res.status(400).send(msg)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }     
+        }
+    }
     
+    const getProjectsByAdvisorForTitleAndSituation = async (req, res) => {
+        try {
+            const {advisorId, title, situation, page} = req.params
+            const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
+            const query = Project.find({title: new RegExp(title, "i")})
+                .and([{advisor: advisorId}, {situation: situation}])
+                .sort({title:'asc'}) 
+                .populate('students', parameters)
+                .populate('advisor', parameters)
+                .populate('orientation')
+                .populate(
+                    {
+                        path: 'tasks', 
+                        populate: {
+                            path: 'comments', 
+                            populate: {
+                                path: 'commentUser', select: parameters
+                            }
+                        }
+                    })
+     
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            }
+
+            const projects = await Project.paginate(query, options)
+            existOrError(projects.docs, "Nenhum projeto encontrado")
+            res.status(200).json(projects) 
+
+        } catch (msg) {
+            if(msg === "Nenhum projeto encontrado") {
+                res.status(400).send(msg)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }     
+        }    
+    } 
+
     const getProjectsForStudent = async (req, res) => {
         try {
             const id = req.params.id
@@ -662,6 +747,8 @@ module.exports = app => {
         listAllProjectsByCreatedAt,
         getProjectsForAdvisor,
         getProjectsByAdvisorForTitle,
+        getProjectsByAdvisorForSituation,
+        getProjectsByAdvisorForTitleAndSituation,
         getProjectsForStudent,
         getProjectById,
         updateProject,

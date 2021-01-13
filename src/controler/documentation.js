@@ -97,10 +97,10 @@ module.exports = app => {
         }
     }
 
-    //Listagem
+    //Lista todos os documentos
     const listAllDocumentation = async (req, res) => {
         try {
-            const query = Documentation.find()
+            const query = Documentation.find().sort({title: 'asc'})
 
             let page = req.params.page    
             const options = {
@@ -124,10 +124,38 @@ module.exports = app => {
         }   
     }
 
+    const getDocumentationByTitle = async (req, res) => {
+        try {
+            const {title, page} = req.params
+            const query = Documentation.find({title: new RegExp(title, "i")}).sort({title: 'asc'})
+
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const documentation = await Documentation.paginate(query, options)
+            existOrError(documentation.docs, "Nenhum documento encontrado")
+            res.status(200).json(documentation)
+
+        }catch(msg) {
+            
+            if(msg === "Nenhum documento encontrado") {
+                res.status(400).send(msg)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }        
+        }        
+    }
+
     return { 
         saveDocuments,
         updateDocuments,
         deleteDocuments,
-        listAllDocumentation
+        listAllDocumentation,
+        getDocumentationByTitle
     }
 }

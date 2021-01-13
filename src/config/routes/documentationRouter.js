@@ -10,7 +10,8 @@ module.exports = app => {
         saveDocuments, 
         updateDocuments, 
         deleteDocuments,
-        listAllDocumentation 
+        listAllDocumentation,
+        getDocumentationByTitle 
     } = app.src.controler.documentation
 
     //===============Cadastro de Documentos relativos ao Curso==============================
@@ -29,8 +30,12 @@ module.exports = app => {
         .delete(isCoordinator(deleteDocuments))
 
     //================Listando Documentos Relativos ao TCC===================================
+    //Lista todos os documentos
     app.route('/documentos/listar_todos_documentos/:page')
         .all(app.src.config.passport.authenticate())
         .get(listAllDocumentation)
+
+    app.route('/documentos/titulo/:title/:page')
+        .get(getDocumentationByTitle)
 
 }

@@ -126,10 +126,36 @@ module.exports = app => {
         }
     }
 
+    const getOrientationByProjectForTitle = async (req, res) => {
+        try{
+            const {projectId, title, page, modifier} = req.params
+            const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
+            const query = Orientation.find({title: new RegExp(title, "i")})
+                            .where({project: projectId})
+                            .sort({dateOrientation: modifier}) 
+                            .populate('advisor', parameters)
+                
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const orientations = await Orientation.paginate(query, options)
+            existOrError(orientations.docs, "Nenhuma orientação encontrada")
+            res.status(200).json(orientations)
+        } catch (msg) {
+            res.status(400).json(msg)
+        }    
+    }
+
     return {
         saveOrientation,
         updateOrientation,
         deleteOrientation,
         listOrientationsByProject,
+        getOrientationByProjectForTitle
     }
 }
