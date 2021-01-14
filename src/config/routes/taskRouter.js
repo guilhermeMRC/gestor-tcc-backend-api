@@ -12,6 +12,7 @@ module.exports = app => {
         updateTaskStudent,
         deleteTask,
         listAllTasksByProject,
+        getTasksByProjectForTitle,
         getTaskById
     } = app.src.controler.task
     
@@ -35,9 +36,14 @@ module.exports = app => {
         .delete(deleteTask)
 
     //Listar todas as tarefas de um projeto
-    app.route('/tarefa/projeto_tarefas/:id/:page')
+    app.route('/tarefa/projeto_tarefas/:projectId/:modifier/:page')
         .all(app.src.config.passport.authenticate())
         .get(listAllTasksByProject)
+
+    //Listar tarefas de um projeto filtrando pelo título
+    app.route('/tarefa/projeto_tarefas/:projectId/:title/:modifier/:page')
+        .all(app.src.config.passport.authenticate())
+        .get(getTasksByProjectForTitle)
     
     //Listar tarefa buscando por Id
     app.route('/tarefa/:id')

@@ -36,6 +36,7 @@ module.exports = app => {
         .get(listAllDocumentation)
 
     app.route('/documentos/titulo/:title/:page')
+        .all(app.src.config.passport.authenticate())
         .get(getDocumentationByTitle)
 
 }

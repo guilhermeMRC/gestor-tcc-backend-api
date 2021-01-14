@@ -29,5 +29,6 @@ module.exports = app => {
         .get(listOrientationsByProject)
 
     app.route('/orientacao/orientacoes_projeto/titulo/:projectId/:title/:modifier/:page')
+        .all(app.src.config.passport.authenticate())
         .get(getOrientationByProjectForTitle)
 }
