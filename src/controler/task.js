@@ -284,6 +284,68 @@ module.exports = app => {
         }
     }
 
+    const getTasksByProjectForSituation = async (req, res) => {
+        try {
+            const {projectId, situation, modifier, page} = req.params
+            const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
+            const query = Task.find({project: projectId})
+                            .where({situation: situation})
+                            .sort({deadLine: modifier}) 
+                            .populate(
+                                {
+                                    path: 'comments', 
+                                    populate: {
+                                        path: 'commentUser', select: parameters
+                                    }
+                                })
+               
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const tasks = await Task.paginate(query, options)
+            existOrError(tasks.docs, "Nenhuma tarefa encontrada")
+            res.status(200).json(tasks)    
+        } catch (msg) {
+            res.status(400).json(msg)      
+        }
+    }
+
+    const getTasksByProjectForTitleAndSituation = async (req, res) => {
+        try{
+            const {projectId, title, situation, modifier, page} = req.params
+            const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
+            const query = Task.find({title: new RegExp(title, "i")})
+                            .and([{project: projectId}, {situation: situation}])
+                            .sort({deadLine: modifier}) 
+                            .populate(
+                                {
+                                    path: 'comments', 
+                                    populate: {
+                                        path: 'commentUser', select: parameters
+                                    }
+                                })
+               
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const tasks = await Task.paginate(query, options)
+            existOrError(tasks.docs, "Nenhuma tarefa encontrada")
+            res.status(200).json(tasks)    
+        } catch (msg) {
+            res.status(400).json(msg)      
+        }
+    }
+
     const getTaskById = async (req, res) => {
         try {
             const id = req.params.id
@@ -320,6 +382,8 @@ module.exports = app => {
         deleteTask,
         listAllTasksByProject,
         getTasksByProjectForTitle,
-        getTaskById           
+        getTasksByProjectForSituation,
+        getTasksByProjectForTitleAndSituation,
+        getTaskById,        
     }
 }

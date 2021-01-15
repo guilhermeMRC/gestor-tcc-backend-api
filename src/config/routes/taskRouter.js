@@ -13,7 +13,9 @@ module.exports = app => {
         deleteTask,
         listAllTasksByProject,
         getTasksByProjectForTitle,
-        getTaskById
+        getTasksByProjectForSituation,
+        getTasksByProjectForTitleAndSituation,
+        getTaskById,    
     } = app.src.controler.task
     
     //================Cadastrando Tarefas do Projeto=======================================
@@ -45,9 +47,18 @@ module.exports = app => {
         .all(app.src.config.passport.authenticate())
         .get(getTasksByProjectForTitle)
     
+    //Listar tarefas de um projeto filtrando por situação
+    app.route('/tarefa/projeto_tarefas/situacao/:projectId/:situation/:modifier/:page')
+        .get(getTasksByProjectForSituation)
+
+    //Listar tarefas de um projeto filtrando por título e situação
+    app.route('/tarefa/projeto_tarefas/situacao_titulo/:projectId/:title/:situation/:modifier/:page')
+        .get(getTasksByProjectForTitleAndSituation)
+
     //Listar tarefa buscando por Id
     app.route('/tarefa/:id')
         .all(app.src.config.passport.authenticate())
         .get(getTaskById)
  
+    
 }
