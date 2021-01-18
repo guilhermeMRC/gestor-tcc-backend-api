@@ -89,7 +89,7 @@ module.exports = app => {
     //atualiza um projeto parte da coordenação
     app.route('/projeto/coordenacao/atualizar/:id')
         .all(app.src.config.passport.authenticate())
-        .patch(updateProjectCoordinator)
+        .patch(isCoordinator(updateProjectCoordinator))
         
     //==================Deletar Projeto==================================================
     app.route('/projeto/deletar_projeto/:id')

@@ -49,10 +49,12 @@ module.exports = app => {
     
     //Listar tarefas de um projeto filtrando por situação
     app.route('/tarefa/projeto_tarefas/situacao/:projectId/:situation/:modifier/:page')
+        .all(app.src.config.passport.authenticate())
         .get(getTasksByProjectForSituation)
 
     //Listar tarefas de um projeto filtrando por título e situação
     app.route('/tarefa/projeto_tarefas/situacao_titulo/:projectId/:title/:situation/:modifier/:page')
+        .all(app.src.config.passport.authenticate())
         .get(getTasksByProjectForTitleAndSituation)
 
     //Listar tarefa buscando por Id

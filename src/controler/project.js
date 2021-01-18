@@ -55,6 +55,7 @@ module.exports = app => {
     
                 teachear.project.push(newProject._id)
                 studentB.project = newProject._id
+                studentB.available = 'sim'
     
                 await teachear.save()
                 await studentB.save()
@@ -73,6 +74,7 @@ module.exports = app => {
 
                 teachear.project.push(newProject._id)
                 studentA.project = newProject._id
+                studentA.available = 'sim'
 
                 await teachear.save()
                 await studentA.save()
@@ -94,8 +96,9 @@ module.exports = app => {
     
                 teachear.project.push(newProject._id)
                 studentA.project = newProject._id
+                studentA.available = 'sim'
                 studentB.project = newProject._id
-    
+                studentB.available = 'sim'
                 await teachear.save()
                 await studentA.save()
                 await studentB.save()
@@ -104,7 +107,6 @@ module.exports = app => {
             }
                        
         }catch (msg) {
-            console.log(msg)
             return res.status(400).send(msg)
         }    
     }
@@ -588,29 +590,30 @@ module.exports = app => {
             project.description = description
             project.situation = situation
 
-            if(!studentOne && !studentTwo) 
-                res.status(400).json('Um projeto precisa ter pelo menos um aluno preenchido')
-
+            if(!studentOne && !studentTwo) {
+                return res.status(400).json('Um projeto precisa ter pelo menos um aluno preenchido')
+            }
+                
             if(studentOne && !studentTwo) {
-                await User.findByIdAndUpdate(project.students[0], { project: [] })
-                await User.findByIdAndUpdate(project.students[1], { project: [] })
+                await User.findByIdAndUpdate(project.students[0], { project: [], available: 'não' })
+                await User.findByIdAndUpdate(project.students[1], { project: [], available: 'não' })
 
-                project.students = studentOne
+                project.students = [studentOne]
                 await project.save()
 
-                await User.findByIdAndUpdate(studentOne, { project: id })
+                await User.findByIdAndUpdate(studentOne, { project: id, available: 'sim' })
                 
                 res.status(200).json({project, Mensage: 'Projeto Atualizado com sucesso!'})
             }
 
             if(!studentOne && studentTwo) {
-                await User.findByIdAndUpdate(project.students[0], { project: [] })
-                await User.findByIdAndUpdate(project.students[1], { project: [] })
+                await User.findByIdAndUpdate(project.students[0], { project: [], available: 'não' })
+                await User.findByIdAndUpdate(project.students[1], { project: [], available: 'não' })
 
-                project.students = studentTwo
+                project.students = [studentTwo]
                 await project.save()
 
-                await User.findByIdAndUpdate(studentTwo, { project: id })
+                await User.findByIdAndUpdate(studentTwo, { project: id, available: 'sim' })
                 
                 res.status(200).json({project, Mensage: 'Projeto Atualizado com sucesso!'})
             }
@@ -618,14 +621,14 @@ module.exports = app => {
             if(studentOne && studentTwo) {
                 notEqualsOrError(studentOne, studentTwo, 'Não podem ser iguais')
 
-                await User.findByIdAndUpdate(project.students[0], { project: [] })
-                await User.findByIdAndUpdate(project.students[1], { project: [] })
+                await User.findByIdAndUpdate(project.students[0], { project: [], available: 'não' })
+                await User.findByIdAndUpdate(project.students[1], { project: [], available: 'não' })
 
                 project.students = [studentOne, studentTwo] 
                 await project.save()
 
-                await User.findByIdAndUpdate(studentOne, { project: id })
-                await User.findByIdAndUpdate(studentTwo, { project: id })
+                await User.findByIdAndUpdate(studentOne, { project: id, available: 'sim' })
+                await User.findByIdAndUpdate(studentTwo, { project: id, available: 'sim' })
                 
                 res.status(200).json({project, Mensage: 'Projeto Atualizado com sucesso!'})
 
@@ -652,7 +655,7 @@ module.exports = app => {
             const newUser = await User.findOne({_id: advisor}).exec()
             
             //checa se os usuários forem iguais não faz nada
-            if(oldUser.equals(newUser)) {
+            if(`${project.advisor}` === advisor) {
                 return res.status(200).json({project, Mensage: 'Projeto atualizado com sucesso'})
             }else{
                 //removendo o projeto do array de usuário antigo
@@ -666,7 +669,7 @@ module.exports = app => {
                 await project.save()
                 await oldUser.save()
                 await newUser.save()
-                res.status(200).json({project, Mensage: 'Projeto alterado com sucesso'})
+                return res.status(200).json({project, Mensage: 'Projeto alterado com sucesso'})
             }
             
         } catch (msg) {
@@ -720,7 +723,7 @@ module.exports = app => {
 
             //altera o projeto para array zerado no documento do(s) aluno(s)
             deleteProject.students.forEach(itemStudent => {
-                User.findByIdAndUpdate(itemStudent, {project: []}).then()
+                User.findByIdAndUpdate(itemStudent, {project: [], available: 'não'}).then()
             })
 
             // //altera o projeto para array zerado no documento do professor
@@ -733,7 +736,6 @@ module.exports = app => {
             res.status(200).json({Mensage: 'Projeto Deletado com sucesso!'})
             
         } catch (msg) { 
-            console.log(msg)
             res.status(400).json(msg)
         }
     }

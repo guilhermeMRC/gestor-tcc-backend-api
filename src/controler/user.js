@@ -31,6 +31,7 @@ module.exports = app => {
             existOrError(req.body.registration, 'Matricula não informada')
             existOrError(req.body.password, 'Senha não informada')
             existOrError(req.body.email, 'E-mail não informado')
+            existOrError(req.body.userType, 'Tipo de usuário não informado')
             existOrError(confirmPassword, 'Confirmação de Senha inválida')
             equalsOrError(req.body.password, confirmPassword, 'Senhas não conferem')
 
@@ -48,6 +49,17 @@ module.exports = app => {
             const user = new User({
                 ...req.body
             })
+
+            switch(user.userType) {
+                case 'professor': 
+                    user.available = 'sim'
+                    break
+                case 'aluno':
+                    user.available = 'não'
+                    break
+                default:
+                    user.available = 'nulo'
+            }   
             
             user.password = encryptPassword(user.password)
         
@@ -128,7 +140,7 @@ module.exports = app => {
                 .and([{status:'ativo'}, {project: []}])
                 .sort({name:'asc'}) 
                 .select(
-                    "_id name registration email status userType project isCoordinator createdAt"
+                    "_id name registration email status userType project isCoordinator available createdAt"
                 );
 
             let page = req.params.page    
