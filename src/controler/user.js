@@ -55,7 +55,7 @@ module.exports = app => {
                     user.available = 'sim'
                     break
                 case 'aluno':
-                    user.available = 'não'
+                    user.available = 'sim'
                     break
                 default:
                     user.available = 'nulo'
@@ -422,7 +422,14 @@ module.exports = app => {
                 secondNumber: secondNumber
             }
 
-            user.available = available
+            //aqui garante que sempre o aluno, se tiver projeto sempre vai receber um 
+            //available não
+            if(user.userType === 'aluno' && user.project.length > 0){
+                user.available = 'não'    
+            }else{
+                user.available = available
+            }
+
             user.secundaryEmail = secundaryEmail
             user.aboutProfile = aboutProfile
             user.links = newLinks
