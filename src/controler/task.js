@@ -1,11 +1,10 @@
 const { json } = require('express')
 const { use } = require('passport')
 const mongoosePaginate = require('mongoose-paginate-v2');
-const { isValid, parse, isAfter } = require('date-fns');
-const { format, zonedTimeToUtc } = require('date-fns-tz');
+const { isValid, parse, isAfter, parseISO } = require('date-fns')
+const { zonedTimeToUtc, utcToZonedTime, format, toDate } = require('date-fns-tz')
 
 const aws = require('aws-sdk')
-
 const s3 = new aws.S3()
 
 module.exports = app => {    
@@ -27,7 +26,7 @@ module.exports = app => {
 
     //Salvar usuário
     const saveTask = async (req, res) => {
-        const {title, description, deadLine, initialDate, projectId } = req.body
+        const { title, description, deadLine, initialDate, projectId } = req.body
         const user = req.user
         try {
             existOrError(title, 'Título não informado')
@@ -36,8 +35,9 @@ module.exports = app => {
             existOrError(deadLine, 'Prazo não informado')
             existOrError(projectId, 'Id do projeto não informado')
             
-            const newInitialDate = parse(initialDate, 'dd/MM/yyyy', new Date());
-            const newDeadLine = parse(deadLine, 'dd/MM/yyyy', new Date()); 
+            const newInitialDate = parse(initialDate, 'dd/MM/yyyy', new Date())
+            const newDeadLine = parse(deadLine, 'dd/MM/yyyy', new Date())
+            
             existOrError(isValid(newInitialDate), 'Data inicial inválida')
             existOrError(isValid(newDeadLine), 'Prazo final inválido')
             
@@ -113,7 +113,6 @@ module.exports = app => {
         try {
             const id = req.params.id
             const { link } = req.body
-            const {originalname: nameDocument, size, key, location: url = "" } = req.file 
             const user = req.user
             
             if(!req.file && !link) {
@@ -144,7 +143,7 @@ module.exports = app => {
             }
 
             if(req.file) {
-                
+                const {originalname: nameDocument, size, key, location: url = "" } = req.file 
                 if(task.finalFile.key !== '') {
                     s3.deleteObject({
                         Bucket: process.env.AWS_STORAGE_TASK_DOCUMENT,
@@ -236,7 +235,6 @@ module.exports = app => {
                                         path: 'commentUser', select: parameters
                                     }
                                 })
-               
             const options = {
                 page: page,
                 limit: 10,
@@ -384,6 +382,6 @@ module.exports = app => {
         getTasksByProjectForTitle,
         getTasksByProjectForSituation,
         getTasksByProjectForTitleAndSituation,
-        getTaskById,        
+        getTaskById    
     }
 }

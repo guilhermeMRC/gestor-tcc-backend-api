@@ -15,7 +15,7 @@ module.exports = app => {
         getTasksByProjectForTitle,
         getTasksByProjectForSituation,
         getTasksByProjectForTitleAndSituation,
-        getTaskById,    
+        getTaskById
     } = app.src.controler.task
     
     //================Cadastrando Tarefas do Projeto=======================================
@@ -61,6 +61,4 @@ module.exports = app => {
     app.route('/tarefa/:id')
         .all(app.src.config.passport.authenticate())
         .get(getTaskById)
- 
-    
 }
