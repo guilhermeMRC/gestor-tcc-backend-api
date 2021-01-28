@@ -7,12 +7,16 @@ module.exports = app => {
         listAllProjectsForTitle,
         listAllProjectsBySituation,
         listAllProjectsBySituationAndTitle,
+        listAllProjectsNotConluded,
+        listAllProjectsNotConludedByTitle,
         listAllProjectsByCreatedAt,
         getProjectsForAdvisor,
         getProjectsByAdvisorForTitle,
         getProjectsByAdvisorForSituation,
         getProjectsByAdvisorForTitleAndSituation,
         getProjectsForStudent,
+        getProjectNotConcluded,
+        getProjectNotConcludedByTitle,
         getProjectById,
         updateProject,
         updateProjectCoordinator,
@@ -45,6 +49,16 @@ module.exports = app => {
         .all(app.src.config.passport.authenticate())
         .get(listAllProjectsBySituationAndTitle)
 
+    //Lista todos os projetos (em andamento) menos os com situação concluído
+    app.route('/projeto/todos/em_andamento/:page')
+        .all(app.src.config.passport.authenticate())
+        .get(listAllProjectsNotConluded)  
+
+    //Lista todos os projetos (em andamento) filtrando por todas as situações menos a concluído
+    app.route('/projeto/todos/em_andamento/:title/:page')
+        .all(app.src.config.passport.authenticate())
+        .get(listAllProjectsNotConludedByTitle)  
+
     app.route('/projeto/listar_todos/data/hora/criacao/:page')
         .all(app.src.config.passport.authenticate())
         .get(listAllProjectsByCreatedAt)
@@ -69,6 +83,15 @@ module.exports = app => {
     app.route('/projeto/professor_projetos/titulo/situacao/:advisorId/:title/:situation/:page')
         .all(app.src.config.passport.authenticate())
         .get(getProjectsByAdvisorForTitleAndSituation)
+    
+    //Listar Todos os projetos de um professor que estão em andamento
+    app.route('/projeto/professor_projeto/em_andamento/:advisorId/:page')
+        .all(app.src.config.passport.authenticate())
+        .get(getProjectNotConcluded)
+
+    app.route('/projeto/professor_projeto/em_andamento/:advisorId/:title/:page')
+        .all(app.src.config.passport.authenticate())
+        .get(getProjectNotConcludedByTitle)
     
     //Listando os projetos buscando pelo aluno     
     app.route('/projeto/aluno_projetos/:id')

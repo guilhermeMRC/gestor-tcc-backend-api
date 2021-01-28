@@ -284,6 +284,88 @@ module.exports = app => {
             
     }
 
+    const listAllProjectsNotConluded = async (req, res) => {
+        try {
+            const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
+            const page = req.params.page 
+            const query = Project.find()
+                            .nor({situation: 'concluído'})
+                            .populate('students', parameters)
+                            .populate('advisor', parameters)
+                            .populate('orientation')
+                            .populate(
+                                {
+                                    path: 'tasks', 
+                                    populate: {
+                                        path: 'comments', 
+                                        populate: {
+                                            path: 'commentUser', select: parameters
+                                        }
+                                    }
+                                })
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            }       
+
+            const projects = await Project.paginate(query, options)
+            existOrError(projects.docs, "Nenhum projeto encontrado")
+            res.status(200).json(projects)
+
+        }catch(msg) {
+            
+            if(msg === "Nenhum projeto encontrado") {
+                res.status(400).send(msg)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }        
+        }     
+    }
+
+    const listAllProjectsNotConludedByTitle = async (req, res) => {
+        try {
+            const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
+            const {title, page} = req.params 
+            const query = Project.find({title: new RegExp(title, "i")})
+                            .nor({situation: 'concluído'})
+                            .populate('students', parameters)
+                            .populate('advisor', parameters)
+                            .populate('orientation')
+                            .populate(
+                                {
+                                    path: 'tasks', 
+                                    populate: {
+                                        path: 'comments', 
+                                        populate: {
+                                            path: 'commentUser', select: parameters
+                                        }
+                                    }
+                                })
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            }       
+
+            const projects = await Project.paginate(query, options)
+            existOrError(projects.docs, "Nenhum projeto encontrado")
+            res.status(200).json(projects)
+
+        }catch(msg) {
+            
+            if(msg === "Nenhum projeto encontrado") {
+                res.status(400).send(msg)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }        
+        }        
+    }
+
     const listAllProjectsByCreatedAt = async (req, res) => {
         try {
             const { page } = req.params
@@ -494,6 +576,92 @@ module.exports = app => {
             }     
         }    
     } 
+
+    const getProjectNotConcluded = async (req, res) => {
+        try {
+            const {advisorId, page} = req.params
+            const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
+            const query = Project.find({ advisor: advisorId })
+                            .nor({situation: 'concluído'})
+                            .populate('students', parameters)
+                            .populate('advisor', parameters)
+                            .populate('orientation')
+                            .populate(
+                                {
+                                    path: 'tasks', 
+                                    populate: {
+                                        path: 'comments', 
+                                        populate: {
+                                            path: 'commentUser', select: parameters
+                                        }
+                                    }
+                                })
+              
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const projects = await Project.paginate(query, options)
+            existOrError(projects.docs, "Nenhum projeto encontrado")
+            res.status(200).json(projects)
+
+        }catch(msg) {
+            
+            if(msg === "Nenhum projeto encontrado") {
+                res.status(400).send(msg)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }        
+        }
+    }
+
+    const getProjectNotConcludedByTitle = async (req, res) => {
+        try {
+            const {advisorId, title, page} = req.params
+            const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
+            const query = Project.find({title: new RegExp(title, "i")})
+                            .where({advisor: advisorId})
+                            .nor({situation: 'concluído'})
+                            .sort({title:'asc'}) 
+                            .populate('students', parameters)
+                            .populate('advisor', parameters)
+                            .populate('orientation')
+                            .populate(
+                                {
+                                    path: 'tasks', 
+                                    populate: {
+                                        path: 'comments', 
+                                        populate: {
+                                            path: 'commentUser', select: parameters
+                                        }
+                                    }
+                                })
+                 
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const projects = await Project.paginate(query, options)
+            existOrError(projects.docs, "Nenhum projeto encontrado")
+            res.status(200).json(projects)
+
+        }catch(msg) {
+            
+            if(msg === "Nenhum projeto encontrado") {
+                res.status(400).send(msg)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }        
+        }
+    }
 
     const getProjectsForStudent = async (req, res) => {
         try {
@@ -746,11 +914,15 @@ module.exports = app => {
         listAllProjectsForTitle,
         listAllProjectsBySituation,
         listAllProjectsBySituationAndTitle,
+        listAllProjectsNotConluded,
+        listAllProjectsNotConludedByTitle,
         listAllProjectsByCreatedAt,
         getProjectsForAdvisor,
         getProjectsByAdvisorForTitle,
         getProjectsByAdvisorForSituation,
         getProjectsByAdvisorForTitleAndSituation,
+        getProjectNotConcluded,
+        getProjectNotConcludedByTitle,
         getProjectsForStudent,
         getProjectById,
         updateProject,
