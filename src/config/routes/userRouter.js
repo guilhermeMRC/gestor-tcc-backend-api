@@ -24,9 +24,9 @@ module.exports = app => {
     
     //rota para cadastrar professor
     app.route('/usuarios/cadastrar_professor')
-        .all(app.src.config.passport.authenticate())
-        .post(isCoordinator(saveUser))
-        // .post(saveUser)
+        // .all(app.src.config.passport.authenticate())
+        // .post(isCoordinator(saveUser))
+        .post(saveUser)
         
     //rota para cadastrar Aluno
     app.route('/usuarios/cadastrar_aluno')

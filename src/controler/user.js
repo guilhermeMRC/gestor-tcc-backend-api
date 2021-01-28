@@ -21,30 +21,25 @@ module.exports = app => {
     const transporter = app.src.controler.nodemailer.transporter
 
     //importando template do e-mail formatado
-    const { formatEmail } = app.src.resources.template_email
+    const { formatEmail, formatEmailSaveUser } = app.src.resources.template_email
+
+    const {saveMenssage} = app.src.config.posts.userMenssage
 
     //Salvar usuário
     const saveUser = async (req, res) => {
-        const confirmPassword = req.body.confirmPassword
         try {
-            existOrError(req.body.name, 'Nome não informado')
-            existOrError(req.body.registration, 'Matricula não informada')
-            existOrError(req.body.password, 'Senha não informada')
-            existOrError(req.body.email, 'E-mail não informado')
-            existOrError(req.body.userType, 'Tipo de usuário não informado')
-            existOrError(confirmPassword, 'Confirmação de Senha inválida')
-            equalsOrError(req.body.password, confirmPassword, 'Senhas não conferem')
+            const {name, registration, email, userType } = req.body
+            existOrError(name, saveMenssage.nameNotInformed)
+            existOrError(registration, saveMenssage.registrationNotInformed)
+            existOrError(email, saveMenssage.emailNotInformed)
+            existOrError(userType, saveMenssage.userTypeNotInformed)
 
             const userFromDb = await User.findOne({registration: req.body.registration}).exec()
-            if(userFromDb) {
-                return res.status(404).send("Já possui um usuário cadastrado com essa matricula")
-            }
+            notExistsOrError(userFromDb, saveMenssage.foundSameRegistration)
 
             const userFromDb2 = await User.findOne({email: req.body.email}).exec()
-            if(userFromDb2) {
-                return res.status(404).send("Já possui um usuário cadastrado com esse e-mail")
-            }
-            
+            notExistsOrError(userFromDb2, saveMenssage.foundSameEmail)
+
             //pegando dados de um novo usuário
             const user = new User({
                 ...req.body
@@ -59,16 +54,53 @@ module.exports = app => {
                     break
                 default:
                     user.available = 'nulo'
+                    break
             }   
             
-            user.password = encryptPassword(user.password)
-        
-            const newUser = await user.save() 
-            res.status(201).json({user: newUser, resposta: "Usuário Cadastrado com sucesso"})
+            user.password = encryptPassword(user.registration)
+            
+            const defaultAdminEmail = process.env.SMTP_USER
+            const constructEmail = formatEmailSaveUser(user.registration)
+            const mailSent = await transporter.sendMail({
+                from: defaultAdminEmail,
+                to: user.email,
+                subject: "Cadastro no SGTCC curso de Sistema de Informação",
+                html: constructEmail
+            })
+            existOrError(mailSent, saveMenssage.mailSent)
+
+            const newUser = await user.save()
+            res.status(201).json({user: newUser, mailSent, resposta: saveMenssage.registeredSuccessfully})
         }catch (msg) {
-            return res.status(400).send(msg)
-        }
+            console.log(msg)
+            switch(msg) {
+                case saveMenssage.nameNotInformed:
+                    res.status(400).send(msg)
+                    break
+                case saveMenssage.registrationNotInformed:
+                    res.status(400).send(msg)
+                    break
+                case saveMenssage.emailNotInformed:
+                    res.status(400).send(msg)
+                    break
+                case saveMenssage.userTypeNotInformed: 
+                    res.status(400).send(msg)
+                    break
+                case saveMenssage.foundSameRegistration:
+                    res.status(403).send(msg)
+                    break
+                case saveMenssage.foundSameEmail:
+                    res.status(403).send(msg)
+                    break
+                case saveMenssage.mailSent:
+                    res.status(500).send(msg)
+                    break 
+                default: 
+                    res.status(500).send(saveMenssage.serverError)
+                    break   
+            }   
         
+        }
     }
 
     const listAllUsersForTypeUser = async (req, res) => {
