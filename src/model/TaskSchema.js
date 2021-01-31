@@ -20,7 +20,7 @@ module.exports = app => {
         },
         situation: {
             type: String,
-            enum: ['concluído', 'atraso', 'iniciado', 'recusado'],
+            enum: ['concluído', 'atraso', 'iniciado', 'recusado'], //tirar o atraso colocar talvez uma outra situação antes de conluir
             default: 'iniciado'
         },
         initialDate: {

@@ -11,7 +11,7 @@ module.exports = app => {
         },
         type: {
             type: String,
-            enum: ['reunião', 'revisão', 'planejamento'],
+            enum: ['reunião', 'revisão', 'planejamento', 'outros'], //colocar o outros
             require: true
         },
         advisor: {

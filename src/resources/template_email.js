@@ -17,7 +17,7 @@ module.exports = app => {
         return template
     }
 
-    function formatEmailSaveUser(registration) {
+    function formatEmailSaveUser(registration, password) {
         const template = `<!DOCTYPE html>
         <html lang="en">
         <head>
@@ -28,11 +28,12 @@ module.exports = app => {
         <body>
             <h1>Seja Bem vindo ao Sistema Gerenciador de TCC do Curso de Sistemas IFF - Itaperuna-RJ</h1>
             <p>Parabéns você foi cadastrado com sucesso no sistema!</p>
-            <p>Estamos te informando seu login e senha no sistema</p>
+            <p>Estamos te informando seu login e senha.</p>
             <p>Matrícula: ${registration}</p>
-            <p>Senha: ${registration}</p>
-            <p>Ao se logar pela primeira vez, recomendamos, por medidas de segurança que o senhor efetue a troca de sua senha</p>
-            <p>Caso queira se logar no sistema, segue o link abaixo </p>
+            <p>Senha: ${password}</p>
+            <p>Caso queira efetuar a troca de sua senha, por favor acesse esse link</p>
+            <a href="https://gestor-tcc-frontend-react.vercel.app/forgot_password">click aqui</a>
+            <p>Caso queira se logar no sistema com a senha enviada, segue o link abaixo </p>
             <a href="https://gestor-tcc-frontend-react.vercel.app/login">click aqui</a>
         </body>
         </html>`

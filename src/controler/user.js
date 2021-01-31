@@ -56,11 +56,11 @@ module.exports = app => {
                     user.available = 'nulo'
                     break
             }   
-            
-            user.password = encryptPassword(user.registration)
+            const randomPassword = crypto.randomBytes(4).toString("hex");
+            user.password = encryptPassword(randomPassword)
             
             const defaultAdminEmail = process.env.SMTP_USER
-            const constructEmail = formatEmailSaveUser(user.registration)
+            const constructEmail = formatEmailSaveUser(user.registration, randomPassword)
             const mailSent = await transporter.sendMail({
                 from: defaultAdminEmail,
                 to: user.email,
