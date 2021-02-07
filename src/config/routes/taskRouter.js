@@ -9,12 +9,15 @@ module.exports = app => {
     const { 
         saveTask, 
         updateTaskAdvisor, 
+        updateSituationTaskAdvisor,
         updateTaskStudent,
         deleteTask,
         listAllTasksByProject,
         getTasksByProjectForTitle,
         getTasksByProjectForSituation,
         getTasksByProjectForTitleAndSituation,
+        getTasksByProjectNotConcluded,
+        getTasksByProjectNotConcludedForTitle,
         getTaskById
     } = app.src.controler.task
     
@@ -27,6 +30,10 @@ module.exports = app => {
     app.route('/tarefas/atualizar_tarefa/professor/:id')
         .all(app.src.config.passport.authenticate())
         .patch(updateTaskAdvisor)
+
+    app.route('/tarefas/revisar_tarefa/professor/:id')
+        .all(app.src.config.passport.authenticate())
+        .patch(updateSituationTaskAdvisor)
 
     app.route('/tarefas/atualizar_tarefa/aluno/:id')
         .all(app.src.config.passport.authenticate())
@@ -56,6 +63,16 @@ module.exports = app => {
     app.route('/tarefa/projeto_tarefas/situacao_titulo/:projectId/:title/:situation/:modifier/:page')
         .all(app.src.config.passport.authenticate())
         .get(getTasksByProjectForTitleAndSituation)
+
+    //Listar todos as tarefas em andamento de um projeto
+    app.route('/tarefa/projeto_tarefa/nao_concluidas/:projectId/:modifier/:page')
+        .all(app.src.config.passport.authenticate())
+        .get(getTasksByProjectNotConcluded)  
+
+    //Listar todos as tarefas em andamento de um projeto filtrando por título
+    app.route('/tarefa/projeto_tarefa/nao_concluidas/:projectId/:title/:modifier/:page')
+        .get(getTasksByProjectNotConcludedForTitle)
+
 
     //Listar tarefa buscando por Id
     app.route('/tarefa/:id')

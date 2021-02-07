@@ -102,11 +102,48 @@ module.exports = app => {
             task.deadLine = newDeadLine
             task.situation = situation
             
+            //não alterar tarefa situação mexer depois
             await task.save()
             res.status(200).json({task, Mensage: 'Tarefa atualizada com sucesso'}) 
         } catch (msg) {
             res.status(400).json(msg)
         } 
+    }
+
+    const updateSituationTaskAdvisor = async (req, res) => {
+        
+        try{
+            const user = req.user
+            const id = req.params.id
+            const {situation, comment} = req.body 
+
+            const task = await Task.findOne({_id: id})
+            existOrError(task, 'Id da tarefa incorreto ou não existe essa tarefa cadastrada')
+            
+            const project = await Project.findOne({_id: task.project})
+            existOrError(project, 'Projeto não ixiste')
+            
+            equalsOrError(`${project.advisor}`, `${user._id}`, 'Usuário não tem permissão para alterar essa tarefa')
+
+            task.situation = situation
+            if(comment) {
+                const nComment = new Comment()
+                nComment.commentUser = user._id
+                nComment.comment = comment
+                nComment.task = task._id
+
+                const newComment = await nComment.save()
+                task.comments.push(newComment) 
+            }
+
+            await task.save()
+
+            res.status(200).json(task)
+
+        }catch(msg) {
+            console.log(msg)
+            res.status(400).json(msg)
+        }
     }
 
     const updateTaskStudent = async (req, res) => {
@@ -166,9 +203,9 @@ module.exports = app => {
             task.deliveryDate = new Date()
             
             if(isAfter(task.deliveryDate, task.deadLine)) {
-                task.situation = 'atraso'    
+                task.situation = 'entregue com atraso'    
             }else {
-                task.situation = 'concluído'   
+                task.situation = 'entregue'   
             }
             
             await task.save()
@@ -190,7 +227,7 @@ module.exports = app => {
             
             //buscando no banco de dados o projeto
             const project = await Project.findOne({_id: deleteTask.project})
-            existOrError(project, 'projeto incorreto ou não existe')
+            existOrError(project, 'Projeto incorreto ou não existe')
             //checa se o usuário tem permisão para apagar essa tarefa
             equalsOrError(`${project.advisor}`,`${user._id}`, 'Usuário não tem permisão para deletar essa tarefa')
 
@@ -344,6 +381,69 @@ module.exports = app => {
         }
     }
 
+    const getTasksByProjectNotConcluded = async (req, res) => {
+        try{
+            const {projectId, modifier, page} = req.params
+            const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
+            const query = Task.find({project: projectId})
+                            .nor({situation: 'concluída'})
+                            .sort({deadLine: modifier}) 
+                            .populate(
+                                {
+                                    path: 'comments', 
+                                    populate: {
+                                        path: 'commentUser', select: parameters
+                                    }
+                                })
+               
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const tasks = await Task.paginate(query, options)
+            existOrError(tasks.docs, "Nenhuma tarefa encontrada")
+            res.status(200).json(tasks)    
+        } catch (msg) {
+            res.status(400).json(msg)      
+        }       
+    }
+
+    const getTasksByProjectNotConcludedForTitle = async (req, res) => {
+        try{
+            const {projectId, title, modifier, page} = req.params
+            const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
+            const query = Task.find({title: new RegExp(title, "i")})
+                            .where({project: projectId})
+                            .nor({situation: 'concluída'})
+                            .sort({deadLine: modifier}) 
+                            .populate(
+                                {
+                                    path: 'comments', 
+                                    populate: {
+                                        path: 'commentUser', select: parameters
+                                    }
+                                })
+               
+            const options = {
+                page: page,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const tasks = await Task.paginate(query, options)
+            existOrError(tasks.docs, "Nenhuma tarefa encontrada")
+            res.status(200).json(tasks)    
+        } catch (msg) {
+            res.status(400).json(msg)      
+        }
+    }
+
     const getTaskById = async (req, res) => {
         try {
             const id = req.params.id
@@ -376,12 +476,15 @@ module.exports = app => {
     return {
         saveTask,
         updateTaskAdvisor,
+        updateSituationTaskAdvisor,
         updateTaskStudent,
         deleteTask,
         listAllTasksByProject,
         getTasksByProjectForTitle,
         getTasksByProjectForSituation,
         getTasksByProjectForTitleAndSituation,
+        getTasksByProjectNotConcluded,
+        getTasksByProjectNotConcludedForTitle,
         getTaskById    
     }
 }

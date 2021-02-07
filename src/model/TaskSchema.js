@@ -20,8 +20,8 @@ module.exports = app => {
         },
         situation: {
             type: String,
-            enum: ['concluído', 'atraso', 'iniciado', 'recusado'], //tirar o atraso colocar talvez uma outra situação antes de conluir
-            default: 'iniciado'
+            enum: ['iniciada', 'entregue', 'entregue com atraso', 'em revisão', 'concluída'],
+            default: 'iniciada'
         },
         initialDate: {
             type: Date,

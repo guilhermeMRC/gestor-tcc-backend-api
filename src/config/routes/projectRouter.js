@@ -59,6 +59,7 @@ module.exports = app => {
         .all(app.src.config.passport.authenticate())
         .get(listAllProjectsNotConludedByTitle)  
 
+    //Lista todos os projetos filtrando pela data de criação
     app.route('/projeto/listar_todos/data/hora/criacao/:page')
         .all(app.src.config.passport.authenticate())
         .get(listAllProjectsByCreatedAt)
@@ -89,6 +90,7 @@ module.exports = app => {
         .all(app.src.config.passport.authenticate())
         .get(getProjectNotConcluded)
 
+    //Listar Todos os projetos de um professor que estão em andamento por título
     app.route('/projeto/professor_projeto/em_andamento/:advisorId/:title/:page')
         .all(app.src.config.passport.authenticate())
         .get(getProjectNotConcludedByTitle)
@@ -118,5 +120,13 @@ module.exports = app => {
     app.route('/projeto/deletar_projeto/:id')
         .all(app.src.config.passport.authenticate())
         .delete(deleteProject)
+
+    // app.route('/testeSetInterval')
+    //     .get((req, res) => {
+    //         const a = 10
+    //         setInterval(() => {
+    //             console.log(a++)   
+    //         }, 3000) 
+    //     })
 
 }

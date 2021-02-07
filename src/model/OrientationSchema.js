@@ -9,11 +9,11 @@ module.exports = app => {
             type: String,
             require: true
         },
-        type: {
-            type: String,
-            enum: ['reunião', 'revisão', 'planejamento', 'outros'], //colocar o outros
-            require: true
-        },
+        // type: {
+        //     type: String,
+        //     enum: ['reunião', 'revisão', 'planejamento', 'outros'], //matar o tipo
+        //     require: true
+        // },
         advisor: {
             type: app.mongoose.Schema.Types.ObjectId,
             ref: 'User',
