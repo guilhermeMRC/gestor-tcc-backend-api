@@ -53,10 +53,10 @@ module.exports = app => {
         }
     }
 
-    function deleteS3(req) {
+    function deleteS3(req, bucket) {
         if(req.file) {
             s3.deleteObject({
-                Bucket: process.env.AWS_STORAGE_TASK_DOCUMENT,
+                Bucket: bucket,
                 Key: req.file.key  
             }).promise()
         }    

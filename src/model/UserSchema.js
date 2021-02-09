@@ -92,10 +92,6 @@ module.exports = app => {
             type: app.mongoose.Schema.Types.ObjectId,
             ref: 'Project'
         }],
-        // orientation: [{
-        //     type: app.mongoose.Schema.Types.ObjectId,
-        //     ref: 'Orientation'
-        // }],
         createdAt: {
             type: Date,
             default: Date.now,

@@ -12,7 +12,13 @@ module.exports = app => {
     const { encryptPassword } = app.src.config.bcrypt
     
     //funções de validação
-    const { existOrError, notExistsOrError, equalsOrError, isNumeric } = app.src.controler.validation
+    const { 
+            existOrError, 
+            notExistsOrError, 
+            equalsOrError, 
+            isNumeric, 
+            deleteS3  
+        } = app.src.controler.validation
 
     //Importando o model
     const User = app.src.model.UserSchema.User
@@ -317,7 +323,7 @@ module.exports = app => {
     const getProfileUserInfo = async (req, res) => {
         try {
             const parameters = [
-                '_id', 'name', 'registration', 'profilePicture', 
+                '_id', 'name', 'email','registration', 'profilePicture', 
                 'secundaryEmail', 'aboutProfile', 'available', 
                 'links', 'phoneNumber'
             ]
@@ -412,36 +418,16 @@ module.exports = app => {
 
     const updateProfileUser = async (req, res) => {
         try{
-            const idUser = `${req.user._id}`
-            equalsOrError(idUser, req.params.id, 'Usuário não tem permissão para alterar esse perfil')
+            const user = req.user
             const {
                 facebook, linkedin, youtube, instagram,
                 lattes, primaryNumber, secondNumber, available,
                 secundaryEmail, aboutProfile
             } = req.body
-            const user = await User.findOne({ _id: req.params.id })
-            if(req.file) {
-                const {originalname: namePicture, size, key, location: url = "" } = req.file 
-                // //checa se o objeto está vazio se ele estiver vazio
-                // //ele vai até o buket e apaga a foto antiga antes de salvar a nova
-                if(user.profilePicture.key !== '') {
-                    s3.deleteObject({
-                        Bucket: process.env.AWS_STORAGE_IMAGE,
-                        Key: user.profilePicture.key   
-                    }).promise()
-                }
-                
-                const codPicture = key.split("-")
-                const picture = {
-                    cod: codPicture[0],
-                    namePicture,
-                    size,
-                    key,
-                    url,
-                }
-                user.profilePicture = picture
-            }
-
+            const findUser = await User.findOne({ _id: req.params.id })
+            existOrError(findUser, 'Id do usuário incorreto ou não encontrado')
+            equalsOrError(`${user._id}`, `${findUser._id}`, 'Usuário não tem permissão para alterar esse perfil')
+            
             const newLinks = {
                 facebook: facebook,
                 linkedin: linkedin,
@@ -456,23 +442,67 @@ module.exports = app => {
 
             //aqui garante que sempre o aluno, se tiver projeto sempre vai receber um 
             //available não
-            if(user.userType === 'aluno' && user.project.length > 0){
-                user.available = 'não'    
+            if(findUser.userType === 'aluno' && findUser.project.length > 0){
+                findUser.available = 'não'    
             }else{
-                user.available = available
+                findUser.available = available
             }
 
-            user.secundaryEmail = secundaryEmail
-            user.aboutProfile = aboutProfile
-            user.links = newLinks
-            user.phoneNumber = newPhoneNumber
+            findUser.secundaryEmail = secundaryEmail
+            findUser.aboutProfile = aboutProfile
+            findUser.links = newLinks
+            findUser.phoneNumber = newPhoneNumber
             
-            await user.save()
-            res.status(200).json({user, message: 'Perfil atualizado com sucesso'})
+            await findUser.save()
+            res.status(200).json({findUser, message: 'Perfil atualizado com sucesso'})
         }catch(msg) {
             return res.status(400).json({message: msg})
         }
     } 
+
+    //Rota usada para editar apenas foto do perfil do usuário
+    const updateUserProfilePicture = async (req, res) => {
+        try {
+            const user = req.user
+            const findUser = await User.findOne({_id: req.params.id})
+            if(!findUser) {
+                deleteS3(req, process.env.AWS_STORAGE_IMAGE)
+                return res.status(400).json('Id do usuário incorreto ou não encontrado')
+            }
+
+            if(`${user._id}` !== `${findUser._id}`) {
+                deleteS3(req, process.env.AWS_STORAGE_IMAGE)
+                return res.status(400).json('Usuário não tem permissão para alterar esse perfil')    
+            }
+
+            if(req.file) {
+                const {originalname: namePicture, size, key, location: url = "" } = req.file 
+                // //checa se o objeto está vazio se ele estiver vazio
+                // //ele vai até o buket e apaga a foto antiga antes de salvar a nova
+                if(findUser.profilePicture.key !== '') {
+                    s3.deleteObject({
+                        Bucket: process.env.AWS_STORAGE_IMAGE,
+                        Key: findUser.profilePicture.key   
+                    }).promise()
+                }
+                
+                const codPicture = key.split("-")
+                const picture = {
+                    cod: codPicture[0],
+                    namePicture,
+                    size,
+                    key,
+                    url,
+                }
+                findUser.profilePicture = picture
+            }
+
+            await findUser.save()
+            res.status(200).json({findUser, Mensage: 'Foto de perfil adicionada com sucesso'})
+        } catch (msg) {
+            res.status(400).json(msg)
+        }
+    }
 
     //usuário esqueceu a senha
     const forgotPassword = async (req, res) => { 
@@ -559,7 +589,8 @@ module.exports = app => {
         getProfileUserInfo, 
         updateUser,
         updateUserStatus,
-        updateProfileUser, 
+        updateProfileUser,
+        updateUserProfilePicture, 
         forgotPassword,
         resetPassword      
     }

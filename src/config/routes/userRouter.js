@@ -17,7 +17,8 @@ module.exports = app => {
         getProfileUserInfo, 
         updateUser,
         updateUserStatus,
-        updateProfileUser,     
+        updateProfileUser,
+        updateUserProfilePicture     
     } = app.src.controler.user
 
 //===============Rotas de Cadastros de Usuários==================//
@@ -64,7 +65,7 @@ module.exports = app => {
         .all(app.src.config.passport.authenticate())
         .get(listAllStudentsNotProject)
 
-    //Listar informções de Perfil do Usuário
+    //Listar informações de Perfil do Usuário
     app.route('/usuarios/perfil/:id')
         .all(app.src.config.passport.authenticate())
         .get(getProfileUserInfo)
@@ -93,8 +94,13 @@ module.exports = app => {
     //Atualiza informações de perfil dos usuários    
     app.route('/usuarios/atualizar_perfil/:id')
         .all(app.src.config.passport.authenticate())
-        .patch(multer(multerConfigImages).single('file'), updateProfileUser)
+        .patch(updateProfileUser)
     
+    //Atualiza Foto do Usuário
+    app.route('/usuarios/atualizar_perfil/foto/:id')
+        .all(app.src.config.passport.authenticate())
+        .patch(multer(multerConfigImages).single('file'), updateUserProfilePicture)
+
     //Atualiza apenas o status do usuário
     app.route('/usuarios/atualizar_status')
         .all(app.src.config.passport.authenticate())

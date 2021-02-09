@@ -158,13 +158,13 @@ module.exports = app => {
 
             const task = await Task.findOne({_id: id}).exec()
             if(!task) {
-                deleteS3(req)
+                deleteS3(req, process.env.AWS_STORAGE_TASK_DOCUMENT)
                 return res.status(400).json('Id da tarefa incorreto ou não existente')     
             }
             
             const project = await Project.findOne({_id: task.project})
             if(!project) {
-                deleteS3(req)
+                deleteS3(req, process.env.AWS_STORAGE_TASK_DOCUMENT)
                 return res.status(400).json('Id do projeto incorreto ou não existe')     
             }
             
@@ -175,7 +175,7 @@ module.exports = app => {
                 }
             })
             if(compUser === false) {
-                deleteS3(req)
+                deleteS3(req, process.env.AWS_STORAGE_TASK_DOCUMENT)
                 return res.status(400).json('Usuário não tem permissão para alterar essa tarefa')    
             }
 

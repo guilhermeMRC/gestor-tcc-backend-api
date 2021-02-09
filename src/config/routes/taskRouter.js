@@ -71,6 +71,7 @@ module.exports = app => {
 
     //Listar todos as tarefas em andamento de um projeto filtrando por título
     app.route('/tarefa/projeto_tarefa/nao_concluidas/:projectId/:title/:modifier/:page')
+        .all(app.src.config.passport.authenticate())
         .get(getTasksByProjectNotConcludedForTitle)
 
 
