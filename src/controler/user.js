@@ -62,11 +62,12 @@ module.exports = app => {
                     user.available = 'nulo'
                     break
             }   
-            const randomPassword = crypto.randomBytes(4).toString("hex");
-            user.password = encryptPassword(randomPassword)
-            
+            // const randomPassword = crypto.randomBytes(4).toString("hex");
+            // user.password = encryptPassword(randomPassword)
+            user.password = encryptPassword(registration) //provisório para teste  
+
             const defaultAdminEmail = process.env.SMTP_USER
-            const constructEmail = formatEmailSaveUser(user.registration, randomPassword)
+            const constructEmail = formatEmailSaveUser(user.registration, registration) //registration para teste
             const mailSent = await transporter.sendMail({
                 from: defaultAdminEmail,
                 to: user.email,
@@ -422,9 +423,14 @@ module.exports = app => {
             const {
                 facebook, linkedin, youtube, instagram,
                 lattes, primaryNumber, secondNumber, available,
-                secundaryEmail, aboutProfile
+                secundaryEmail, email, aboutProfile
             } = req.body
+
+            existOrError(email, 'E-mail não informado')
             const findUser = await User.findOne({ _id: req.params.id })
+            // const verifyUserEmail = await User.findOne({email: email})
+            // equalsOrError(`${findUser._id}`)
+
             existOrError(findUser, 'Id do usuário incorreto ou não encontrado')
             equalsOrError(`${user._id}`, `${findUser._id}`, 'Usuário não tem permissão para alterar esse perfil')
             
@@ -448,6 +454,7 @@ module.exports = app => {
                 findUser.available = available
             }
 
+            findUser.email = email
             findUser.secundaryEmail = secundaryEmail
             findUser.aboutProfile = aboutProfile
             findUser.links = newLinks

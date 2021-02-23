@@ -115,7 +115,10 @@ module.exports = app => {
         try{
             const user = req.user
             const id = req.params.id
-            const {situation, comment} = req.body 
+            const {situation, deadLine, comment} = req.body
+            
+            const newDeadLine = parse(deadLine, 'dd/MM/yyyy', new Date()); 
+            existOrError(isValid(newDeadLine), 'Prazo final inválido')
 
             const task = await Task.findOne({_id: id})
             existOrError(task, 'Id da tarefa incorreto ou não existe essa tarefa cadastrada')
@@ -126,6 +129,7 @@ module.exports = app => {
             equalsOrError(`${project.advisor}`, `${user._id}`, 'Usuário não tem permissão para alterar essa tarefa')
 
             task.situation = situation
+            task.deadLine = newDeadLine
             if(comment) {
                 const nComment = new Comment()
                 nComment.commentUser = user._id
