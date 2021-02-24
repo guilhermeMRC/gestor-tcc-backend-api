@@ -1,3 +1,4 @@
+const { get } = require('mongoose')
 const isCoordinator = require('../isCoordinator')
 module.exports = app => {
     const {
@@ -5,7 +6,8 @@ module.exports = app => {
         updateOrientation, 
         deleteOrientation, 
         listOrientationsByProject,
-        getOrientationByProjectForTitle 
+        getOrientationByProjectForTitle,
+        getOrientationById 
     } = app.src.controler.orientation
 
     //salva uma orientação
@@ -28,7 +30,12 @@ module.exports = app => {
         .all(app.src.config.passport.authenticate())
         .get(listOrientationsByProject)
 
+    //Lista as orientações de um projeto filtrando por título
     app.route('/orientacao/orientacoes_projeto/titulo/:projectId/:title/:modifier/:page')
         .all(app.src.config.passport.authenticate())
         .get(getOrientationByProjectForTitle)
+
+    app.route('/orientacao/:id')
+        .all(app.src.config.passport.authenticate())
+        .get(getOrientationById)  
 }

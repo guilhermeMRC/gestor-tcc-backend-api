@@ -27,7 +27,10 @@ module.exports = app => {
     
             equalsOrError(user.status, 'ativo', 'Usuário está inativo. Por favor entre em contato com a coordenação de ensino.')
             
-            comparePassword(res, req.body.password, user.password)
+            // comparePassword(res, req.body.password, user.password)
+            if(comparePassword(req.body.password, user.password) === false){
+                return res.status(401).json('Senha inválida')
+            }
 
             //capturando a data atual em milissegundos
             const momentNow = Math.floor(Date.now() / 1000)
@@ -50,7 +53,7 @@ module.exports = app => {
 
             //validando o token
             if(!validateToken(tokenJWT)) {
-                res.status(400).send("Token inválido")
+                return res.status(400).send("Token inválido")
             }
             
             //salvando o token no banco de dados

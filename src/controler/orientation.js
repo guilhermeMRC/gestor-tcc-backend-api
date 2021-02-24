@@ -7,8 +7,7 @@ module.exports = app => {
     const saveOrientation = async(req, res) => {
         try {
             const {
-                title, description, 
-                type, advisorId, 
+                title, description,
                 projectId, dateOrientation 
             } = req.body
 
@@ -16,8 +15,6 @@ module.exports = app => {
 
             existOrError(title, 'Título não informado')
             existOrError(description, 'Descrição não informada')
-            existOrError(type, 'Tipo não informado')
-            // existOrError(advisorId, 'Id do professor não informado')
             existOrError(projectId, 'Id do projeto não informado')
             existOrError(dateOrientation, 'Data da orientação não informada')
 
@@ -33,7 +30,6 @@ module.exports = app => {
             const orientation = new Orientation()
             orientation.title = title
             orientation.description = description
-            orientation.type = type
             orientation.advisor = user
             orientation.project = projectId
             orientation.dateOrientation = newDate
@@ -52,12 +48,11 @@ module.exports = app => {
     const updateOrientation = async (req, res) => {
         try {
             const id = req.params.id
-            const { title, description, type, dateOrientation } = req.body
+            const { title, description, dateOrientation } = req.body
             const user = req.user    
 
             existOrError(title, 'Título não informado')
             existOrError(description, 'Descrição não informada')
-            existOrError(type, 'Tipo não informado')
             existOrError(dateOrientation, 'Data da orientação não informada')
 
             const orientation = await Orientation.findOne({_id: id})
@@ -70,7 +65,6 @@ module.exports = app => {
 
             orientation.title = title
             orientation.description = description
-            orientation.type = type
             orientation.dateOrientation = dateOrientation
 
             await orientation.save()
@@ -151,11 +145,34 @@ module.exports = app => {
         }    
     }
 
+    const getOrientationById = async (req, res) => {
+        try{
+            const {id} = req.params
+            const parameters = ['name', 'registration', 'status', 'userType', 'profilePicture']
+            const query = Orientation.findOne({_id: id})
+                
+            const options = {
+                page: 1,
+                limit: 10,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const orientations = await Orientation.paginate(query, options)
+            existOrError(orientations.docs, "Nenhuma orientação encontrada")
+            res.status(200).json(orientations)
+        } catch (msg) {
+            res.status(400).json(msg)
+        }
+    }
+
     return {
         saveOrientation,
         updateOrientation,
         deleteOrientation,
         listOrientationsByProject,
-        getOrientationByProjectForTitle
+        getOrientationByProjectForTitle,
+        getOrientationById
     }
 }

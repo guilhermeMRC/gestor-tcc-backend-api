@@ -885,7 +885,8 @@ module.exports = app => {
             //deletando as orientações
             if(deleteProject.orientation.length !== 0){
                 deleteProject.orientation.forEach(itemOrientation => {
-                    Orientation.findByIdAndRemove({_id: itemOrientation})
+                    // console.log(itemOrientation)
+                    Orientation.findByIdAndRemove({_id: itemOrientation}).then()
                 })    
             }
 
@@ -894,8 +895,8 @@ module.exports = app => {
                 User.findByIdAndUpdate(itemStudent, {project: [], available: 'sim'}).then()
             })
 
-            // //altera o projeto para array zerado no documento do professor
-            // User.findByIdAndUpdate(deleteProject.advisor, {project: []}).then()
+            //altera o projeto para array zerado no documento do professor
+            User.findByIdAndUpdate(deleteProject.advisor, {project: []}).then()
             user.project.splice(user.project.indexOf(deleteProject._id),1)
             await user.save()
 

@@ -2,11 +2,9 @@ const bcrypt = require('bcrypt')
 
 module.exports = app => {
 
-    function comparePassword(res, passwordA, passwordB) {
+    function comparePassword(passwordA, passwordB) {
         const isMatch = bcrypt.compareSync(passwordA, passwordB)
-        if(!isMatch){
-            return res.status(401).send('Senha inválidos')
-        }
+        return isMatch
     }
     
     function encryptPassword(password) {

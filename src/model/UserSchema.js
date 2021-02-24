@@ -70,7 +70,7 @@ module.exports = app => {
                 secondNumber: '',
             }
         },
-        secundaryEmail: {
+        secondaryEmail: {
             type: String,
             default: ''
         },  

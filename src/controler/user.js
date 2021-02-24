@@ -9,7 +9,7 @@ const s3 = new aws.S3()
 
 module.exports = app => {
     //função para encriptar senha
-    const { encryptPassword } = app.src.config.bcrypt
+    const { encryptPassword, comparePassword } = app.src.config.bcrypt
     
     //funções de validação
     const { 
@@ -213,7 +213,7 @@ module.exports = app => {
                 'name', 'registration','email',
                 'status', 'isCoordinator', 'profilePicture',
                 'aboutProfile', 'available', 'links',
-                'phoneNumber', 'secundaryEmail'
+                'phoneNumber', 'secondaryEmail'
             ]
             const query = User.find({ userType: 'professor'})
             .sort({name:'asc'}) 
@@ -325,7 +325,7 @@ module.exports = app => {
         try {
             const parameters = [
                 '_id', 'name', 'email','registration', 'profilePicture', 
-                'secundaryEmail', 'aboutProfile', 'available', 
+                'secondaryEmail', 'aboutProfile', 'available', 
                 'links', 'phoneNumber'
             ]
             const user = await User.findOne({_id: req.params.id})
@@ -423,17 +423,22 @@ module.exports = app => {
             const {
                 facebook, linkedin, youtube, instagram,
                 lattes, primaryNumber, secondNumber, available,
-                secundaryEmail, email, aboutProfile
+                secondaryEmail, email, aboutProfile
             } = req.body
 
             existOrError(email, 'E-mail não informado')
             const findUser = await User.findOne({ _id: req.params.id })
-            // const verifyUserEmail = await User.findOne({email: email})
-            // equalsOrError(`${findUser._id}`)
-
+            
             existOrError(findUser, 'Id do usuário incorreto ou não encontrado')
             equalsOrError(`${user._id}`, `${findUser._id}`, 'Usuário não tem permissão para alterar esse perfil')
             
+            if(email !== findUser.email) {
+                const userVerifyEmail = await User.findOne({email: email})
+                if(userVerifyEmail) {
+                    return res.status(400).json('Esse e-mail já está cadastrado no banco. Por favor ensira um e-mail válido')
+                }
+            }
+
             const newLinks = {
                 facebook: facebook,
                 linkedin: linkedin,
@@ -455,7 +460,7 @@ module.exports = app => {
             }
 
             findUser.email = email
-            findUser.secundaryEmail = secundaryEmail
+            findUser.secondaryEmail = secondaryEmail
             findUser.aboutProfile = aboutProfile
             findUser.links = newLinks
             findUser.phoneNumber = newPhoneNumber
@@ -506,6 +511,36 @@ module.exports = app => {
 
             await findUser.save()
             res.status(200).json({findUser, Mensage: 'Foto de perfil adicionada com sucesso'})
+        } catch (msg) {
+            res.status(400).json(msg)
+        }
+    }
+
+    //troca de senha
+    const updateUserChangePassword = async (req, res) => {
+        try {
+            const user = req.user
+            const id = req.params.id
+            const { correntPassword, newPassword, confirmPassword } = req.body 
+            existOrError(correntPassword, 'Senha atual não informada')
+            existOrError(newPassword, 'Nova senha não informada')
+            existOrError(confirmPassword, 'confirmação de senha não informada')
+
+            const findUser = await User.findOne({_id: id})
+            existOrError(findUser, 'Usuário não encontrado ou não existe')
+            equalsOrError(`${user._id}`, `${findUser._id}`, 'Usuário não possui permissão para alterar a senha desse usuário.')
+            
+            if(comparePassword(correntPassword, findUser.password) === false) {
+                return res.status(401).json('Senha atual não confere com a senha cadastrada do usuário')
+            }
+
+            equalsOrError(newPassword, confirmPassword, 'Nova senha não confere com a confirmação de senha')
+
+            findUser.password = encryptPassword(newPassword)
+            await findUser.save()
+
+            res.status(201).json({findUser, Mensage: 'Senha alterada com sucesso'})
+
         } catch (msg) {
             res.status(400).json(msg)
         }
@@ -597,7 +632,8 @@ module.exports = app => {
         updateUser,
         updateUserStatus,
         updateProfileUser,
-        updateUserProfilePicture, 
+        updateUserProfilePicture,
+        updateUserChangePassword, 
         forgotPassword,
         resetPassword      
     }

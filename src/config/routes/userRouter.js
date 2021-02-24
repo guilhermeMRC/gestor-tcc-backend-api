@@ -18,7 +18,8 @@ module.exports = app => {
         updateUser,
         updateUserStatus,
         updateProfileUser,
-        updateUserProfilePicture     
+        updateUserProfilePicture,
+        updateUserChangePassword,      
     } = app.src.controler.user
 
 //===============Rotas de Cadastros de Usuários==================//
@@ -105,4 +106,9 @@ module.exports = app => {
     app.route('/usuarios/atualizar_status')
         .all(app.src.config.passport.authenticate())
         .put(isCoordinator(updateUserStatus))
+
+    //Muda a senha
+    app.route('/usuario/trocar_senha/:id')
+        .all(app.src.config.passport.authenticate())
+        .patch(updateUserChangePassword)
 }
