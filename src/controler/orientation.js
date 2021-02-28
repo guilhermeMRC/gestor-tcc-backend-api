@@ -65,7 +65,7 @@ module.exports = app => {
 
             orientation.title = title
             orientation.description = description
-            orientation.dateOrientation = dateOrientation
+            orientation.dateOrientation = newDate
 
             await orientation.save()
             res.status(200).json({orientation, mensage: 'Orientação atualizada com sucesso'})
