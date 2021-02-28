@@ -521,8 +521,8 @@ module.exports = app => {
         try {
             const user = req.user
             const id = req.params.id
-            const { correntPassword, newPassword, confirmPassword } = req.body 
-            existOrError(correntPassword, 'Senha atual não informada')
+            const { currentPassword, newPassword, confirmPassword } = req.body 
+            existOrError(currentPassword, 'Senha atual não informada')
             existOrError(newPassword, 'Nova senha não informada')
             existOrError(confirmPassword, 'confirmação de senha não informada')
 
@@ -530,7 +530,7 @@ module.exports = app => {
             existOrError(findUser, 'Usuário não encontrado ou não existe')
             equalsOrError(`${user._id}`, `${findUser._id}`, 'Usuário não possui permissão para alterar a senha desse usuário.')
             
-            if(comparePassword(correntPassword, findUser.password) === false) {
+            if(comparePassword(currentPassword, findUser.password) === false) {
                 return res.status(401).json('Senha atual não confere com a senha cadastrada do usuário')
             }
 

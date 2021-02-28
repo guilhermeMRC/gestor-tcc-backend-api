@@ -44,6 +44,7 @@ module.exports = app => {
                 userType: user.userType,
                 isCoordinator: user.isCoordinator,
                 available: user.available,
+                profilePicture: user.profilePicture,
                 iat: momentNow,
                 exp: momentNow + (72 * 60 * 60)
             }
