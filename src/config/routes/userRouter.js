@@ -12,6 +12,7 @@ module.exports = app => {
         listAllUsersForTypeUserAndStatus,
         listAllStudentsNotProject,
         listAllProfileTeacher,
+        listAllProfileTeacherByAvailable,
         getAllByRegistrationOrName,  
         getUserByRegistrationOrName,
         getProfileUserInfo, 
@@ -75,6 +76,11 @@ module.exports = app => {
     app.route('/usuarios/professores_perfil/:page')
         .all(app.src.config.passport.authenticate())
         .get(listAllProfileTeacher)
+
+    //Listar o perfil de todos os professores filtrando pela disponibilidade
+    app.route('/usuarios/professores_perfil/:available/:page')
+        .all(app.src.config.passport.authenticate())
+        .get(listAllProfileTeacherByAvailable)
         
     //==============rotas para Atualizar usuário==================// 
     //Atualiza informações sensíveis de alunos

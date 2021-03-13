@@ -48,6 +48,10 @@ module.exports = app => {
             type: String, //ver se é o suficiente
             default: ''
         },
+        researchLine: {
+            type: String,
+            default: ''
+        },
         available: {
             type: String,
             enum: ['sim', 'não', 'nulo'],

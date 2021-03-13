@@ -213,7 +213,7 @@ module.exports = app => {
                 'name', 'registration','email',
                 'status', 'isCoordinator', 'profilePicture',
                 'aboutProfile', 'available', 'links',
-                'phoneNumber', 'secondaryEmail'
+                'phoneNumber', 'secondaryEmail', 'researchLine'
             ]
             const query = User.find({ userType: 'professor'})
             .sort({name:'asc'}) 
@@ -223,7 +223,7 @@ module.exports = app => {
 
             const options = {
                 page: page,
-                limit: 10,
+                limit: 12,
                 collation: {
                     locale: 'pt'
                 }
@@ -241,6 +241,46 @@ module.exports = app => {
                 res.status(500).send('Erro no servidor')
             }    
         }     
+    }
+
+    //Lista o perfil de todos os professores filtrando por disponibilidade
+    const listAllProfileTeacherByAvailable = async (req, res) => {
+        try {
+            const page = req.params.page
+            const available = req.params.available
+            const parameters = [ 
+                'name', 'registration','email',
+                'status', 'isCoordinator', 'profilePicture',
+                'aboutProfile', 'available', 'links',
+                'phoneNumber', 'secondaryEmail', 'researchLine'
+            ]
+            const query = User.find({ userType: 'professor'})
+            .where({available: available})
+            .sort({name:'asc'}) 
+            .select(
+                parameters
+            );
+
+            const options = {
+                page: page,
+                limit: 12,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const users = await User.paginate(query, options)
+            existOrError(users.docs, 'Nenhum usuário encontrado')
+
+            res.status(200).json(users)
+
+        }catch(error) {
+            if(error === "Nenhum usuário encontrado") {
+                res.status(400).send(error)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }    
+        }
     }
 
     //filtrar todos os usuários por matrícula ou nome 
@@ -326,7 +366,7 @@ module.exports = app => {
             const parameters = [
                 '_id', 'name', 'email','registration', 'profilePicture', 
                 'secondaryEmail', 'aboutProfile', 'available', 
-                'links', 'phoneNumber'
+                'links', 'phoneNumber', 'researchLine'
             ]
             const user = await User.findOne({_id: req.params.id})
                 .select(parameters)
@@ -423,7 +463,7 @@ module.exports = app => {
             const {
                 facebook, linkedin, youtube, instagram,
                 lattes, primaryNumber, secondNumber, available,
-                secondaryEmail, email, aboutProfile
+                secondaryEmail, email, aboutProfile, researchLine
             } = req.body
 
             existOrError(email, 'E-mail não informado')
@@ -462,6 +502,7 @@ module.exports = app => {
             findUser.email = email
             findUser.secondaryEmail = secondaryEmail
             findUser.aboutProfile = aboutProfile
+            findUser.researchLine = researchLine
             findUser.links = newLinks
             findUser.phoneNumber = newPhoneNumber
             
@@ -626,6 +667,7 @@ module.exports = app => {
         listAllUsersForTypeUserAndStatus,
         listAllStudentsNotProject,
         listAllProfileTeacher,
+        listAllProfileTeacherByAvailable,
         getAllByRegistrationOrName,  
         getUserByRegistrationOrName,
         getProfileUserInfo, 
