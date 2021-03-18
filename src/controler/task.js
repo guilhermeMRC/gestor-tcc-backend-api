@@ -7,7 +7,14 @@ const { zonedTimeToUtc, utcToZonedTime, format, toDate } = require('date-fns-tz'
 const aws = require('aws-sdk')
 const s3 = new aws.S3()
 
-module.exports = app => {    
+module.exports = app => {
+    
+    //inportando o transporte para envio de email
+    const transporter = app.src.controler.nodemailer.transporter
+
+    //importando template do e-mail formatado
+    const { formatNotificationSaveTask, formatNotificationDeliveryTask } = app.src.resources.template_email
+
     //funções de validação
     const { 
         existOrError, 
@@ -45,7 +52,9 @@ module.exports = app => {
                 return res.status(400).json('Data inicial não pode ser maior que o prazo')
             }
             
-            const findProject = await Project.findOne({_id: projectId}).exec()
+            const parameters = ['_id', 'name', 'email']
+            const findProject = await Project.findOne({_id: projectId})
+                .populate('students', parameters)
             existOrError(findProject, 'Id do projeto incorreto ou não existe')
 
             equalsOrError(`${findProject.advisor}`,`${user._id}`, 'Usuário não tem permissão para cadastrar uma tarefa')
@@ -56,6 +65,22 @@ module.exports = app => {
             newTask.initialDate = newInitialDate
             newTask.deadLine = newDeadLine
             newTask.project = projectId
+
+            //pegando os e-mails dos alunos
+            const studentsEmail = []
+            findProject.students.filter(b => {
+                studentsEmail.push(b.email)
+            })
+
+            const defaultAdminEmail = process.env.SMTP_USER
+            const constructEmail = formatNotificationSaveTask(newTask.title)
+            const mailSent = await transporter.sendMail({
+                from: defaultAdminEmail,
+                to: studentsEmail,
+                subject: "Nova tarefa postada.",
+                html: constructEmail
+            })
+            existOrError(mailSent, 'Erro ao enviar o e-mail')
 
             const task = await newTask.save()
 
@@ -166,21 +191,39 @@ module.exports = app => {
                 return res.status(400).json('Id da tarefa incorreto ou não existente')     
             }
             
+            const parameters = ['_id', 'name', 'email']
             const project = await Project.findOne({_id: task.project})
+                .populate('students', parameters)
+                .populate('advisor', parameters)
             if(!project) {
                 deleteS3(req, process.env.AWS_STORAGE_TASK_DOCUMENT)
                 return res.status(400).json('Id do projeto incorreto ou não existe')     
             }
             
             let compUser = false
+            const studentsNames = []
             project.students.forEach(item => {
-                if(`${item}` === `${user._id}`) {
+                studentsNames.push(item.name)
+                if(`${item._id}` === `${user._id}`) {
                     return compUser = true
                 }
             })
             if(compUser === false) {
                 deleteS3(req, process.env.AWS_STORAGE_TASK_DOCUMENT)
                 return res.status(400).json('Usuário não tem permissão para alterar essa tarefa')    
+            }
+
+            const defaultAdminEmail = process.env.SMTP_USER
+            const constructEmail = formatNotificationDeliveryTask(task.title, studentsNames, project.title)
+            const mailSent = await transporter.sendMail({
+                from: defaultAdminEmail,
+                to: project.advisor.email,
+                subject: "Tarefa Entregue.",
+                html: constructEmail
+            })
+            if(!mailSent) {
+                deleteS3(req, process.env.AWS_STORAGE_TASK_DOCUMENT)
+                return res.status(400).json('E-mail não enviado. Cheque o cliente de e-mail!') 
             }
 
             if(req.file) {

@@ -283,6 +283,84 @@ module.exports = app => {
         }
     }
 
+    //lista os perfis de professor pesquisando por nome
+    const getProfilesTeacherByName = async (req, res) => {
+        try {
+            const {page, findName} = req.params
+            const parameters = [ 
+                'name', 'registration','email',
+                'status', 'isCoordinator', 'profilePicture',
+                'aboutProfile', 'available', 'links',
+                'phoneNumber', 'secondaryEmail', 'researchLine'
+            ]
+            const query = User.find({ name: new RegExp(findName, "i") })
+                .where({userType: 'professor'})
+                .sort({name:'asc'}) 
+                .select(
+                    parameters
+                );
+
+            const options = {
+                page: page,
+                limit: 12,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const users = await User.paginate(query, options)
+            existOrError(users.docs, 'Nenhum usuário encontrado')
+
+            res.status(200).json(users)
+
+        }catch(error) {
+            if(error === "Nenhum usuário encontrado") {
+                res.status(400).send(error)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }    
+        }        
+    }
+
+    const getProfileTeacherAvailableByName = async (req, res) => {
+        try {
+            const {page, findName, teacherAvailable} = req.params
+            const parameters = [ 
+                'name', 'registration','email',
+                'status', 'isCoordinator', 'profilePicture',
+                'aboutProfile', 'available', 'links',
+                'phoneNumber', 'secondaryEmail', 'researchLine'
+            ]
+            const query = User.find({ name: new RegExp(findName, "i") })
+                .and([{ userType: 'professor' }, { available: teacherAvailable }])
+                .sort({name:'asc'}) 
+                .select(
+                    parameters
+                );
+
+            const options = {
+                page: page,
+                limit: 12,
+                collation: {
+                    locale: 'pt'
+                }
+            };       
+
+            const users = await User.paginate(query, options)
+            existOrError(users.docs, 'Nenhum usuário encontrado')
+
+            res.status(200).json(users)
+
+        }catch(error) {
+            if(error === "Nenhum usuário encontrado") {
+                res.status(400).send(error)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }    
+        }        
+        
+    }
+
     //filtrar todos os usuários por matrícula ou nome 
     const getAllByRegistrationOrName = async (req, res) => {
         try {
@@ -668,6 +746,8 @@ module.exports = app => {
         listAllStudentsNotProject,
         listAllProfileTeacher,
         listAllProfileTeacherByAvailable,
+        getProfilesTeacherByName,
+        getProfileTeacherAvailableByName,
         getAllByRegistrationOrName,  
         getUserByRegistrationOrName,
         getProfileUserInfo, 

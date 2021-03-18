@@ -41,5 +41,46 @@ module.exports = app => {
         return template    
     }
 
-    return { formatEmail, formatEmailSaveUser }
+    function formatNotificationSaveTask(newTask) {
+        const template = `<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Teamplate</title>
+        </head>
+        <body>
+            <h1>NOTIFICAÇÃO!</h1>
+            <p>Olá. Seu professor acabou de postar a tarefa "${newTask}" no SGTCC.</p>
+            <p>Acesse a plataforma para conferir.</p>
+        </body>
+        </html>`
+        
+        return template    
+    }
+
+    function formatNotificationDeliveryTask(taskTitle, students, projectTitle) {
+        const template = `<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Teamplate</title>
+        </head>
+        <body>
+            <h1>NOTIFICAÇÃO!</h1>
+            <p>Olá. O(s) aluno(s) ${students} do TCC "${projectTitle}" entregaram a Tarefa "${taskTitle}".</p>
+            <p>Acesse a plataforma para conferir.</p>
+        </body>
+        </html>`
+        
+        return template    
+    }
+
+    return { 
+        formatEmail, 
+        formatEmailSaveUser, 
+        formatNotificationSaveTask, 
+        formatNotificationDeliveryTask 
+    }
 }
