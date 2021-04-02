@@ -283,6 +283,28 @@ module.exports = app => {
         }
     }
 
+    //lista todos os professores disponiveis sem paginação
+    const getTeachersWithoutPagination = async (req, res) => {
+        try {
+            const teaches = await User.find({userType: 'professor'})
+                .where({available: 'sim'})
+                .sort({name: -1})
+                .select('name')
+
+            existOrError(teaches, 'Nenhum usuário encontrado')
+
+            res.status(200).json(teaches)
+        } catch (msg) {
+            if(msg === "Nenhum usuário encontrado") {
+                res.status(400).send(msg)
+            }else {
+                res.status(500).send('Erro no servidor')
+            }        
+        }
+    }
+
+
+
     //lista os perfis de professor pesquisando por nome
     const getProfilesTeacherByName = async (req, res) => {
         try {
@@ -746,6 +768,7 @@ module.exports = app => {
         listAllStudentsNotProject,
         listAllProfileTeacher,
         listAllProfileTeacherByAvailable,
+        getTeachersWithoutPagination,
         getProfilesTeacherByName,
         getProfileTeacherAvailableByName,
         getAllByRegistrationOrName,  

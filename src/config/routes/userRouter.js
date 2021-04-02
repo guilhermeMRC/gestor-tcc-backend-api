@@ -13,6 +13,7 @@ module.exports = app => {
         listAllStudentsNotProject,
         listAllProfileTeacher,
         listAllProfileTeacherByAvailable,
+        getTeachersWithoutPagination,
         getProfilesTeacherByName,
         getProfileTeacherAvailableByName,
         getAllByRegistrationOrName,  
@@ -83,6 +84,10 @@ module.exports = app => {
     app.route('/usuarios/professores_perfil/:available/:page')
         .all(app.src.config.passport.authenticate())
         .get(listAllProfileTeacherByAvailable)
+
+    //Lista todos os professores disponiveis sem paginação
+    app.route('/usuarios/professores_sempaginacao')
+        .get(getTeachersWithoutPagination)
 
     //Listar o perfil dos professores filtrando por nome
     app.route('/usuarios/professores_perfil/filtro/:findName/:page')
