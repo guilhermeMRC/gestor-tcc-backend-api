@@ -31,8 +31,8 @@ module.exports = app => {
         }],
         situation: {
             type: String,
-            enum: ['concluído', 'pré-tcc', 'tcc1', 'tcc2'],
-            default: 'pré-tcc'
+            enum: ['concluído', 'pré-projeto', 'tcc1', 'tcc2'],
+            default: 'pré-projeto'
         },
         createdAt: {
             type: Date,
